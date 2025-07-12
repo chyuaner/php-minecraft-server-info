@@ -1,0 +1,16 @@
+{
+    "name": "yuan/php-minecraft-mods-info",
+    "description": "Minecraft Mods Info API",
+    "autoload": {
+        "psr-4": {
+            "Yuan\\PhpMinecraftModsInfo\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Yuan Chiu",
+            "email": "chyuaner@gmail.com"
+        }
+    ],
+    "require": {}
+}
