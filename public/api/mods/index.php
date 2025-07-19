@@ -5,6 +5,12 @@ require __DIR__ . '/../../../bootstrap.php';
 use McModUtils\Mods;
 use McModUtils\Mod;
 
+$enableCache = true;
+$type = 'json';
+
+if (!empty($_REQUEST['force'])) {
+    $enableCache = false;
+}
 
 $modsUtil = new Mods();
 $modsUtil->analyzeModsFolder();
@@ -20,6 +26,7 @@ $pathFilename = basename($path); // "lalala.jar"
 
 // 若在網址有指定 /mods/{slug}
 if (!in_array($pathFilename, ['mods', 'index', 'index.php'])) {
+    $enableCache = false;
     $modFileName = $pathFilename;
     if (Mods::isFileExist($modFileName)) {
         $mod = new Mod($modFileName);
@@ -32,6 +39,21 @@ if (!in_array($pathFilename, ['mods', 'index', 'index.php'])) {
 
 // 若沒有帶入單一檔案參數
 if (empty($output)) {
+
+    // 快取 $cacheFile
+    $cacheFile = (BASE_PATH.$GLOBALS['config']['modsi_cache_rpath']);
+    if ($enableCache && file_exists($cacheFile)) {
+        $currentHash = $modsUtil->getHashed();
+        $cache = json_decode(file_get_contents($cacheFile), true);
+        if ($cache['modsHash'] == $currentHash) {
+            $output = $cache;
+            header('Content-Type: application/json; charset=utf-8');
+            $outputRaw = json_encode($output);
+            echo $outputRaw;
+            exit;
+        }
+    }
+
     $modsFileList = $modsUtil->getModNames();
     $modsOutput = [];
     foreach ($modsFileList as $modFileName) {
@@ -49,11 +71,17 @@ if (empty($output)) {
 // echo '<pre>';print_r($modsOutput);echo '</pre>';
 // exit;
 
-$type = 'json';
 // 若在網址有指定 ?type=csv ， 或是 header content-type有指定的話
 if (false) {
     $type = 'csv';
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($output);
+$outputRaw = json_encode($output);
+echo $outputRaw;
+
+// 寫入快取
+if($enableCache && $type = 'json') {
+    $cacheFilePath = BASE_PATH.$GLOBALS['config']['modsi_cache_rpath'];
+    file_put_contents($cacheFilePath, $outputRaw);
+}
