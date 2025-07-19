@@ -6,6 +6,11 @@ Minecraft Mods 模組清單後端
 
 ## 建置&啟動開發伺服器
 
+### 啟動簡易伺服器
+```
+php -S 127.0.0.1:8000 -t public
+```
+
 ## 上線部署
 ### Nginx設定
 
@@ -22,6 +27,7 @@ Minecraft Mods 模組清單後端
 ### 預計輸出API
 ```json
 {
+    "modsHash": "abc123...",
     "mods": [
     {
         "name": "journey-into-the-light", // Prism Launcher

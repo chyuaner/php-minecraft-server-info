@@ -149,6 +149,15 @@ class Mod {
         return '';
     }
 
+    public function outputBasic() : array {
+        return [
+            "name" => "journey-into-the-light", // Prism Launcher
+            "sha1" => "abc123...", // ModUpdater
+            "fileName" => "journey-into-the-light-1.3.2.jar", // CurseForge API
+            "downloadUrl" => "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // CurseForge API
+        ];
+    }
+
     public function output() : array {
         return [
             "name" => "journey-into-the-light", // Prism Launcher

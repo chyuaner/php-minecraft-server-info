@@ -7,9 +7,16 @@ final class Mods
         return $GLOBALS['config']['mods_path'];
     }
 
-    public static function mods() : array {
+    private $hashed;
+    private $modNames;
+
+    public function doHash() : string {
+        return $this->hashed;
+    }
+
+    public function doModNames() : array {
         // 從設定檔取得mods資料夾路徑
-        $directory    = self::modsPath();
+        $directory = self::modsPath();
 
         // scandir寫法：取得所有mods檔名
         // $files = scandir($directory);
@@ -19,6 +26,23 @@ final class Mods
         $filePaths = glob($directory . '/*.jar');;
         $files = array_map('basename', $filePaths);
 
+        $this->modNames = $files;
         return $files;
+    }
+
+    public function getModNames() : array {
+        if (!isset($this->modNames)) {
+            return $this->doModNames();
+        }
+        return $this->modNames;
+    }
+
+    public static function hash() : string {
+        return '';
+    }
+
+    public static function mods() : array {
+        $obj = new self();
+        return $obj->getModNames();
     }
 }
