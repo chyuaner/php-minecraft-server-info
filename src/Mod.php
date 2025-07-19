@@ -12,7 +12,7 @@ class Mod {
         }
         // 如果只帶檔案名稱
         else {
-            return rtrim($GLOBALS['config']['mods_path'], '/').$fileName;
+            return join(DIRECTORY_SEPARATOR, [rtrim($GLOBALS['config']['mods_path'], '/'), $fileName]);
         }
     }
 
@@ -103,7 +103,7 @@ class Mod {
         }
         // 無資訊，直接輸出檔名
         else {
-            return '';
+            return $this->modFileName;
         }
     }
 
@@ -141,8 +141,13 @@ class Mod {
         return $this->modFileName;
     }
 
+    public function getSha1(): string
+    {
+        return sha1_file($this->modFilePath);
+    }
+
     function getDownloadUrl() : string {
-        return '';
+        return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->modFileName);
     }
 
     function getWebsiteUrl() : string {
@@ -151,10 +156,11 @@ class Mod {
 
     public function outputBasic() : array {
         return [
-            "name" => "journey-into-the-light", // Prism Launcher
-            "sha1" => "abc123...", // ModUpdater
-            "fileName" => "journey-into-the-light-1.3.2.jar", // CurseForge API
-            "downloadUrl" => "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // CurseForge API
+            "name" => $this->getName(),
+            "sha1" => $this->getSha1(),
+            "fileName" => $this->getFileName(),
+            // "filePath" => $this->modFilePath,
+            "downloadUrl" => $this->getDownloadUrl(), // CurseForge API
         ];
     }
 
