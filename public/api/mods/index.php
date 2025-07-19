@@ -16,4 +16,5 @@ if (false) {
 }
 
 // echo Mods::modsPath();
+echo 'hashed: '.Mods::hash();
 echo '<pre>';print_r(Mods::mods());echo '</pre>';
