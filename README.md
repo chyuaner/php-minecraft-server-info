@@ -5,6 +5,15 @@ Minecraft Mods 模組清單後端
 
 
 ## 建置&啟動開發伺服器
+```
+git clone <url>
+cd php-minecraft-mods-info
+composer install
+composer dump-autoload
+cp config.default.php config.php
+vim config.php # 根據需求修改
+php -S 127.0.0.1:8000 -t public
+```
 
 ### 啟動簡易伺服器
 ```
@@ -16,13 +25,11 @@ php -S 127.0.0.1:8000 -t public
 
 ## 後端輸出草稿
 ### 網址規劃
-* GET https://your.server/api/mods : 模組清單（最重要）
+* ✅GET https://your.server/api/mods : 模組清單（最重要）
 * GET https://your.server/api/mods?type=html : 以HTML格式輸出模組清單（可能先略過）
-* GET https://your.server/api/mods?force=1 : 強制從上游更新模組資訊
-* GET https://your.server/api/mods/{slug} : 單一模組完整資訊（可能先略過）
-* GET https://your.server/files/mod/*.jar : 模組檔案本體載點（設定Nginx直連檔案本體，跳過PHP）
-* GET https://your.server/zip/mods : 模組打包下載
-* GET https://your.server/zip/mods?force=1 : 模組打包下載，強制重新打包zip
+* ✅GET https://your.server/api/mods?force=1 : 強制更新模組資訊
+* ✅GET https://your.server/api/mods/{filename} : 單一模組完整資訊
+* ✅GET https://your.server/files/mod/*.jar : 模組檔案本體載點（設定Nginx直連檔案本體，跳過PHP）
 
 ### 預計輸出API
 ```json
