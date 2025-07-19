@@ -35,9 +35,19 @@ final class Mods
 
         $files = [];
         $hashComponents = [];
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+
+        $ignoredDirs = ['.connector', '.index', '.git', 'logs', 'cache'];
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
 
         foreach ($iterator as $file) {
+            foreach ($ignoredDirs as $ignore) {
+                if (str_contains($file->getPath(), DIRECTORY_SEPARATOR . $ignore)) {
+                    continue 2; // 跳過這筆資料
+                }
+            }
+
             if ($file->isFile() && str_ends_with($file->getFilename(), '.jar')) {
                 $relativePath = substr($file->getPathname(), strlen($directory));
                 $mtime = $file->getMTime();

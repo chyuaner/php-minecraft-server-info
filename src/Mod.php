@@ -17,8 +17,11 @@ class Mod {
     }
 
     public function __construct(string $fileName) {
-        $this->modFileName = $fileName;
+        $this->modFileName = basename($fileName);
         $this->modFilePath = $this->parseFileName($fileName);
+        if (!file_exists($this->modFilePath)) {
+            throw new \Exception("Mod file not found: $this->modFilePath");
+        }
     }
 
     public function parse() : array {
