@@ -4,6 +4,8 @@ use McModUtils\Mods;
 
 require __DIR__ . '/../../../bootstrap.php';
 
+header('X-Served-By: PHP-Mods-Stream');
+
 $modFile = basename($_SERVER['REQUEST_URI']);  // e.g. curios.jar
 $modPath = Mods::parseFileInput($modFile);
 
