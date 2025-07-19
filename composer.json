@@ -3,7 +3,7 @@
     "description": "Minecraft Mods Info API",
     "autoload": {
         "psr-4": {
-            "Yuan\\PhpMinecraftModsInfo\\": "src/"
+            "McModUtils\\": "src/"
         }
     },
     "authors": [
