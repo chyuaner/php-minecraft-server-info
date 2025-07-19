@@ -12,6 +12,7 @@ Minecraft Mods 模組清單後端
 ## 後端輸出草稿
 ### 網址規劃
 * GET https://your.server/api/mods : 模組清單（最重要）
+* GET https://your.server/api/mods?type=html : 以HTML格式輸出模組清單（可能先略過）
 * GET https://your.server/api/mods?force=1 : 強制從上游更新模組資訊
 * GET https://your.server/api/mods/{slug} : 單一模組完整資訊（可能先略過）
 * GET https://your.server/files/mod/*.jar : 模組檔案本體載點（設定Nginx直連檔案本體，跳過PHP）
@@ -19,6 +20,34 @@ Minecraft Mods 模組清單後端
 * GET https://your.server/zip/mods?force=1 : 模組打包下載，強制重新打包zip
 
 ### 預計輸出API
+```json
+{
+    "mods": [
+    {
+        "name": "journey-into-the-light", // Prism Launcher
+        "authors": [ // Prism Launcher
+            "Sinytra, FabricMC"
+        ],
+        "version": "0.115.6+2.1.1+1.21.1", // Prism Launcher
+        "filename": "journey-into-the-light-1.3.2.jar", // Prism Launcher
+        "fileName": "journey-into-the-light-1.3.2.jar", // CurseForge API
+        "sha1": "abc123...", // ModUpdater
+        "hashes": [ // CurseForge API
+            {
+            "value": "abc123...",
+            "algo": 1
+            }
+        ],
+        "url": "https://www.curseforge.com/projects/889079", // Prism Launcher
+        "download": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // ModUpdater
+        "downloadUrl": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // CurseForge API
+        "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light", // CurseForge API
+        "fileDate": "2019-08-24T14:15:22Z", // CurseForge API
+        "fileLength": 0, // CurseForge API
+    }
+  ]
+}
+```
 
 ## 參考資料
 ### API JSON Output
@@ -51,7 +80,7 @@ GET https://api.curseforge.com/v1/mods/238222
     "downloadUrl": "string",
     "hashes": [
         { "algo": 1, "value": "abc123..." }  // SHA1
-        { "algo": 2, "value": "abc123..." }  // SHA1
+        { "algo": 2, "value": "abc123..." }  // MD5
     ],
     "links": {
         "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light",
