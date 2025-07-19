@@ -16,7 +16,7 @@ class Mod {
         }
         // 如果只帶檔案名稱
         else {
-            return join(DIRECTORY_SEPARATOR, [rtrim($GLOBALS['config']['mods_path'], '/'), $raw]);
+            return join(DIRECTORY_SEPARATOR, [rtrim(Mods::modsPath(), '/'), $raw]);
         }
     }
 
@@ -26,6 +26,10 @@ class Mod {
         if (!file_exists($this->modFilePath)) {
             throw new \Exception("Mod file not found: $this->modFilePath");
         }
+    }
+
+    public function isFileExist() : bool {
+        return file_exists($this->modFilePath);
     }
 
     public function parse() : bool {

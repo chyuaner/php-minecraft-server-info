@@ -90,4 +90,10 @@ final class Mods
         $obj = new self();
         return $obj->getModNames();
     }
+
+    public static function isFileExist($fileName) : bool {
+        $directory = self::modsPath();
+        $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($GLOBALS['config']['mods_path'], '/'), $fileName]);
+        return file_exists($modFilePath);
+    }
 }
