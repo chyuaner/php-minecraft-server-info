@@ -12,6 +12,7 @@ final class Mods
 
     private $hashed;
     private $modNames;
+    private $modPaths;
 
     // public function doModNames() : array {
     //     // 從設定檔取得mods資料夾路徑
@@ -54,6 +55,7 @@ final class Mods
                 $size = $file->getSize();
 
                 $files[] = basename($file->getPathname()); // 存檔名
+                $paths[] = $file->getPathname(); // 存檔名
                 $hashComponents[] = $relativePath . '|' . $mtime . '|' . $size;
             }
         }
@@ -65,6 +67,7 @@ final class Mods
 
         $this->hashed = $hash;
         $this->modNames = $files;
+        $this->modPaths = $paths;
     }
 
     public function getHashed() : string {
@@ -79,6 +82,13 @@ final class Mods
             $this->analyzeModsFolder();
         }
         return $this->modNames;
+    }
+
+    public function getModPaths() : array {
+        if (!isset($this->modNames)) {
+            $this->analyzeModsFolder();
+        }
+        return $this->modPaths;
     }
 
     public static function hash() : string {
