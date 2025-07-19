@@ -32,7 +32,8 @@ php -S 127.0.0.1:8000 -t public
     {
         "name": "journey-into-the-light", // Prism Launcher
         "authors": [ // Prism Launcher
-            "Sinytra, FabricMC"
+            "Sinytra",
+            "FabricMC"
         ],
         "version": "0.115.6+2.1.1+1.21.1", // Prism Launcher
         "filename": "journey-into-the-light-1.3.2.jar", // Prism Launcher

@@ -20,7 +20,7 @@ $modsFileList = $modsUtil->getModNames();
 $modsOutput = [];
 foreach ($modsFileList as $modFileName) {
     $mod = new Mod($modFileName);
-    array_push($modsOutput, $mod->outputBasic());
+    array_push($modsOutput, $mod->output());
 }
 
 $output = [
