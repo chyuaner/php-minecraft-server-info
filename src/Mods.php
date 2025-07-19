@@ -93,7 +93,18 @@ final class Mods
 
     public static function isFileExist($fileName) : bool {
         $directory = self::modsPath();
-        $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($GLOBALS['config']['mods_path'], '/'), $fileName]);
+        $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($directory, '/'), $fileName]);
         return file_exists($modFilePath);
+    }
+
+    public static function parseFileInput(string $raw) : string {
+        // TODO: 如果是帶入完整路徑
+        if (false) {
+            return $raw;
+        }
+        // 如果只帶檔案名稱
+        else {
+            return join(DIRECTORY_SEPARATOR, [rtrim(self::modsPath(), '/'), $raw]);
+        }
     }
 }

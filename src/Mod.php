@@ -10,14 +10,7 @@ class Mod {
     protected $authors = [];
 
     private function parseFileInput(string $raw) {
-        // TODO: 如果是帶入完整路徑
-        if (false) {
-            return $raw;
-        }
-        // 如果只帶檔案名稱
-        else {
-            return join(DIRECTORY_SEPARATOR, [rtrim(Mods::modsPath(), '/'), $raw]);
-        }
+        return Mods::parseFileInput($raw);
     }
 
     public function __construct(string $fileName) {
