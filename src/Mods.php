@@ -39,7 +39,7 @@ final class Mods
 
         foreach ($iterator as $file) {
             if ($file->isFile() && str_ends_with($file->getFilename(), '.jar')) {
-                $relativePath = substr($file->getPathname(), strlen($dir));
+                $relativePath = substr($file->getPathname(), strlen($directory));
                 $mtime = $file->getMTime();
                 $size = $file->getSize();
 
