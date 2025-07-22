@@ -1,6 +1,6 @@
 {
-    "name": "yuan/php-minecraft-mods-info",
-    "description": "Minecraft Mods Info API",
+    "name": "yuan/php-minecraft-server-info",
+    "description": "Minecraft Server Info API",
     "autoload": {
         "psr-4": {
             "McModUtils\\": "src/"

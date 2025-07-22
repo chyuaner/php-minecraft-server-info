@@ -1,4 +1,4 @@
-Minecraft Mods 模組清單後端
+後端抓取Minecraft資訊
 ===
 
 基本上會檢查你指定的mods資料夾裡的所有.jar檔，並輸出成JSON，提供Minecraft自製模組同步腳本、靜態前端頁面API呼叫使用。
