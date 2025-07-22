@@ -37,27 +37,27 @@ php -S 127.0.0.1:8000 -t public
     "modsHash": "abc123...",
     "mods": [
     {
-        "name": "journey-into-the-light", // Prism Launcher
-        "authors": [ // Prism Launcher
+        "name": "journey-into-the-light", /* Prism Launcher */
+        "authors": [ /* Prism Launcher */
             "Sinytra",
             "FabricMC"
         ],
-        "version": "0.115.6+2.1.1+1.21.1", // Prism Launcher
-        "filename": "journey-into-the-light-1.3.2.jar", // Prism Launcher
-        "fileName": "journey-into-the-light-1.3.2.jar", // CurseForge API
-        "sha1": "abc123...", // ModUpdater
-        "hashes": [ // CurseForge API
+        "version": "0.115.6+2.1.1+1.21.1", /* Prism Launcher *.
+        "filename": "journey-into-the-light-1.3.2.jar", /* Prism Launcher */
+        "fileName": "journey-into-the-light-1.3.2.jar", /* CurseForge API */
+        "sha1": "abc123...", /* ModUpdater */
+        "hashes": [ /* CurseForge API */
             {
             "value": "abc123...",
             "algo": 1
             }
         ],
-        "url": "https://www.curseforge.com/projects/889079", // Prism Launcher
-        "download": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // ModUpdater
-        "downloadUrl": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", // CurseForge API
-        "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light", // CurseForge API
-        "fileDate": "2019-08-24T14:15:22Z", // CurseForge API
-        "fileLength": 0, // CurseForge API
+        "url": "https://www.curseforge.com/projects/889079", /* Prism Launcher */
+        "download": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", /* ModUpdater */
+        "downloadUrl": "https://media.forgecdn.net/files/1234/567/journey-into-the-light-1.3.2.jar", /* CurseForge API */
+        "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light", /* CurseForge API */
+        "fileDate": "2019-08-24T14:15:22Z", /* CurseForge API */
+        "fileLength": 0, /* CurseForge API */
     }
   ]
 }
@@ -72,7 +72,7 @@ GET https://api.curseforge.com/v1/mods/238222
 ```json
 {
   "data": {
-    "id": 238222, // fileId (本後端應該用不到)
+    "id": 238222, /* fileId (本後端應該用不到) */
     "name": "Journey Into the Light",
     "slug": "journey-into-the-light",
     "modId": 238222,
@@ -93,8 +93,8 @@ GET https://api.curseforge.com/v1/mods/238222
     "fileSizeOnDisk": 0,
     "downloadUrl": "string",
     "hashes": [
-        { "algo": 1, "value": "abc123..." }  // SHA1
-        { "algo": 2, "value": "abc123..." }  // MD5
+        { "algo": 1, "value": "abc123..." }  /* SHA1 */
+        { "algo": 2, "value": "abc123..." }  /* MD5 */
     ],
     "links": {
         "websiteUrl": "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light",
