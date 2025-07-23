@@ -122,6 +122,10 @@ final class Mods
         }
     }
 
+    public static function zipPath() : string {
+        return self::ZIP_PATH;
+    }
+
     public function getZipComment(string $zipPath = self::ZIP_PATH): ?string {
         if (!file_exists($zipPath)) return null;
         $zip = new ZipArchive();
