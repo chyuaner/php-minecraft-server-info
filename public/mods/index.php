@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../../../bootstrap.php';
+require __DIR__ . '/../../bootstrap.php';
 
 use McModUtils\Mods;
 use McModUtils\Mod;
