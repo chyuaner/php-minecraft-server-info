@@ -20,6 +20,10 @@ require __DIR__ . '/../bootstrap.php';
 </head>
 <body>
     <h1>Minecraft 橋接遊戲伺服器用的後端</h1>
+
+    <h2>伺服器位址</h2>
+    <?= $GLOBALS['config']['minecraft_host'] ?>:<?= $GLOBALS['config']['minecraft_port'] ?>
+
     <h2>已有功能</h2>
     <ul>
         <li>GET /mods</li>
