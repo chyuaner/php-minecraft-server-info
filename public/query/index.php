@@ -14,6 +14,8 @@ if ($_REQUEST['type'] == 'json') {
     $enableCache = true;
 }
 
+// -----------------------------------------------------------------------------
+
 $output = [];
 
 $Query = new MinecraftQuery();

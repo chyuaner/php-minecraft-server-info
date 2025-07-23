@@ -14,25 +14,31 @@ if ($_REQUEST['type'] == 'json') {
     $enableCache = true;
 }
 
-$output = [];
+// -----------------------------------------------------------------------------
 
-try
-{
-    $Query = new MinecraftPing( $GLOBALS['config']['minecraft_host'], $GLOBALS['config']['minecraft_port'] );
-    $output = $Query->Query();
-}
-catch( MinecraftPingException $e )
-{
-    http_response_code(500);
-    $output = ['error' => $e->getMessage()];
-}
-finally
-{
-    if( $Query )
+function getInfo($host, $port, $id=null, $name='', $qport=null) : array {
+    try
     {
-        $Query->Close();
+        $Query = new MinecraftPing( $host, $port );
+        $output = $Query->Query();
     }
+    catch( MinecraftPingException $e )
+    {
+        http_response_code(500);
+        $output = ['error' => $e->getMessage()];
+    }
+    finally
+    {
+        if( $Query )
+        {
+            $Query->Close();
+        }
+    }
+    return $output;
 }
+
+$output = getInfo($GLOBALS['config']['minecraft_host'], $port=$GLOBALS['config']['minecraft_port']);
+
 
 switch ($type) {
     case 'html':
