@@ -21,7 +21,7 @@ if (!file_exists($zipPath)) {
 
 $zipMTime = (new DateTime())->setTimestamp(filemtime($zipPath));
 $zipMTime->setTimezone(new DateTimeZone('Asia/Taipei'));
-$zipFileName = 'McMods-'.$zipMTime->format("Ymd-Hi").'.zip';
+$zipFileName = 'BarianMcMods整合包-'.$zipMTime->format("Ymd-Hi").'.zip';
 
 header('Content-Type: application/zip');
 header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
