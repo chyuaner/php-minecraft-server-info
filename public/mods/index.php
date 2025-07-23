@@ -25,16 +25,19 @@ if (!empty($_REQUEST['force'])) {
 
 // 若在網址有指定 /mods/{slug}
 // 取得帶入的網址參數
+$selectorParamName = 'file';
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 $pathFilename = basename($path); // "lalala.jar"
-if (!empty($_REQUEST['file']) || !in_array($pathFilename, ['mods', 'index', 'index.php'])) {
-    $enableCache = false;
-    if (!empty($_REQUEST['file'])) {
-        $modFileName = $_REQUEST['file'];
+if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['index', 'index.php'])) {
+    if (!empty($_REQUEST[$selectorParamName])) {
+        $$selectorParamName = $_REQUEST[$selectorParamName];
     } else {
-        $modFileName = $pathFilename;
+        $$selectorParamName = $pathFilename;
     }
+
+    $enableCache = false;
+    $modFileName = $$selectorParamName;
 }
 
 // -----------------------------------------------------------------------------

@@ -14,6 +14,22 @@ if ($_REQUEST['type'] == 'json') {
     $enableCache = true;
 }
 
+// 若在網址有指定 /ping/{server}
+$selectorParamName = 'serverId';
+$uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($uri, PHP_URL_PATH);
+$pathFilename = basename($path); // "lalala.jar"
+if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['index', 'index.php'])) {
+    if (!empty($_REQUEST[$selectorParamName])) {
+        $$selectorParamName = $_REQUEST[$selectorParamName];
+    } else {
+        $$selectorParamName = $pathFilename;
+    }
+
+    $enableCache = false;
+    $modFileName = $$selectorParamName;
+}
+
 // -----------------------------------------------------------------------------
 
 function getInfo($host, $port, $id=null, $name='', $qport=null) : array {
@@ -37,8 +53,19 @@ function getInfo($host, $port, $id=null, $name='', $qport=null) : array {
     return $output;
 }
 
-$output = getInfo($GLOBALS['config']['minecraft_host'], $port=$GLOBALS['config']['minecraft_port']);
+if (!empty($serverId) && array_key_exists($serverId, ($GLOBALS['config']['minecraft_servers']))) {
+    $mc_server = $GLOBALS['config']['minecraft_servers'][$serverId];
 
+    $output = getInfo(
+        $mc_server['host'],
+        $mc_server['port'],
+        $serverId,
+        $mc_server['name'],
+        $mc_server['qport'],
+    );
+} else {
+    $output = getInfo($GLOBALS['config']['minecraft_host'], $port=$GLOBALS['config']['minecraft_port']);
+}
 
 switch ($type) {
     case 'html':
