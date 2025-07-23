@@ -14,9 +14,13 @@ if (!empty($_REQUEST['force'])) {
 }
 
 // 如果有包含 text/html，就當作瀏覽器
-if (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
+if ($_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
     $enableCache = false; // 快取只針對JSON使用，所以非JSON就直接關閉快取
+}
+if ($_REQUEST['type'] == 'json') {
+    $type = 'json';
+    $enableCache = true;
 }
 
 // 若在網址有指定 /mods/{slug}
@@ -42,14 +46,18 @@ if (!empty($modFileName)) {
             "modHash" => $mod->getSha1(),
             "mod" => $mod->output()
         ];
+
+        // 輸出
+        header('Content-Type: application/json; charset=utf-8');
+        $outputRaw = json_encode($output);
+        echo $outputRaw;
     }
 }
-
 // 若沒有帶入單一檔案參數
-if (empty($output)) {
+else {
 
     // 若有啟用快取，就從快取抓
-    if ($enableCache) {
+    if ($enableCache && $type=='json') {
 
         // 快取 $cacheFile
         $cacheFile = (BASE_PATH.$GLOBALS['config']['modsi_cache_rpath']);
@@ -69,36 +77,36 @@ if (empty($output)) {
         }
     }
 
+
     $modsFileList = $modsUtil->getModNames();
-    $modsOutput = [];
-    foreach ($modsFileList as $modFileName) {
-        $mod = new Mod($modFileName);
-        array_push($modsOutput, $mod->output());
+
+    if ($type == 'html') {
+        echo '<ul>';
+        foreach ($modsFileList as $modFileName) {
+            $mod = new Mod($modFileName);
+            echo '<li>';
+            echo $mod->outputHtml();
+            echo '</li>';
+        }
+        echo '</ul>';
     }
+    else {
+        $modsOutput = [];
+        foreach ($modsFileList as $modFileName) {
+            $mod = new Mod($modFileName);
+            array_push($modsOutput, $mod->output());
+        }
 
-    $output = [
-        "modsHash" => $modsUtil->getHashed(),
-        "mods" => $modsOutput
-    ];
-}
+        $output = [
+            "modsHash" => $modsUtil->getHashed(),
+            "mods" => $modsOutput
+        ];
 
-// 測試輸出純內容
-// echo '<pre>';print_r($modsOutput);echo '</pre>';
-// exit;
-
-// 若在網址有指定 ?type=csv ， 或是 header content-type有指定的話
-
-switch ($type) {
-    case 'csv':
-        # code...
-        break;
-
-    case 'json':
-    default:
         header('Content-Type: application/json; charset=utf-8');
         $outputRaw = json_encode($output);
         echo $outputRaw;
-        break;
+    }
+
 }
 
 // 寫入快取

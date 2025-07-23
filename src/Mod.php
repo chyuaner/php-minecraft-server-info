@@ -228,4 +228,14 @@ class Mod {
         ];
     }
 
+    public function outputHtml() : string {
+        $itemHtml = '
+        <a href="'.$this->getDownloadUrl().'">'.$this->getName().'</a>
+        ['.$this->getVersion().']
+        by '.$this->getAuthors().'
+        ('.$this->getFileName().')
+        ';
+        return $itemHtml;
+    }
+
 }
