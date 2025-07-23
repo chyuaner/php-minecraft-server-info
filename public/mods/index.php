@@ -60,7 +60,7 @@ else {
     if ($enableCache && $type=='json') {
 
         // 快取 $cacheFile
-        $cacheFile = (BASE_PATH.$GLOBALS['config']['modsi_cache_rpath']);
+        $cacheFile = (BASE_PATH.'/public/static/mods.json');
         if (file_exists($cacheFile)) {
 
             // 檢查該資料夾有無被變動過
@@ -115,6 +115,6 @@ else {
 
 // 寫入快取
 if($type = 'json') {
-    $cacheFilePath = BASE_PATH.$GLOBALS['config']['modsi_cache_rpath'];
+    $cacheFilePath = BASE_PATH.'/public/static/mods.json';
     file_put_contents($cacheFilePath, $outputRaw);
 }
