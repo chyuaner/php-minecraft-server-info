@@ -28,9 +28,13 @@ if (!empty($_REQUEST['force'])) {
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 $pathFilename = basename($path); // "lalala.jar"
-if (!in_array($pathFilename, ['mods', 'index', 'index.php'])) {
+if (!empty($_REQUEST['file']) || !in_array($pathFilename, ['mods', 'index', 'index.php'])) {
     $enableCache = false;
-    $modFileName = $pathFilename;
+    if (!empty($_REQUEST['file'])) {
+        $modFileName = $_REQUEST['file'];
+    } else {
+        $modFileName = $pathFilename;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -39,19 +43,17 @@ $modsUtil = new Mods();
 $modsUtil->analyzeModsFolder();
 
 // 若在網址有指定 /mods/{slug}
-if (!empty($modFileName)) {
-    if (Mods::isFileExist($modFileName)) {
-        $mod = new Mod($modFileName);
-        $output = [
-            "modHash" => $mod->getSha1(),
-            "mod" => $mod->output()
-        ];
+if (!empty($modFileName) && Mods::isFileExist($modFileName)) {
+    $mod = new Mod($modFileName);
+    $output = [
+        "modHash" => $mod->getSha1(),
+        "mod" => $mod->output()
+    ];
 
-        // 輸出
-        header('Content-Type: application/json; charset=utf-8');
-        $outputRaw = json_encode($output);
-        echo $outputRaw;
-    }
+    // 輸出
+    header('Content-Type: application/json; charset=utf-8');
+    $outputRaw = json_encode($output);
+    echo $outputRaw;
 }
 // 若沒有帶入單一檔案參數
 else {
