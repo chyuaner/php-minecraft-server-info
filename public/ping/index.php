@@ -23,7 +23,8 @@ try
 }
 catch( MinecraftPingException $e )
 {
-    $output = [$e->getMessage()];
+    http_response_code(500);
+    $output = ['error' => $e->getMessage()];
 }
 finally
 {
