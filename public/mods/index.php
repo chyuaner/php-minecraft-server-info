@@ -9,10 +9,6 @@ $enableCache = true;
 $type = 'json';
 $modFileName = null;
 
-if (!empty($_REQUEST['force'])) {
-    $enableCache = false;
-}
-
 // 如果有包含 text/html，就當作瀏覽器
 if ($_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
@@ -21,6 +17,10 @@ if ($_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', '
 if ($_REQUEST['type'] == 'json') {
     $type = 'json';
     $enableCache = true;
+}
+
+if (!empty($_REQUEST['force'])) {
+    $enableCache = false;
 }
 
 // 若在網址有指定 /mods/{slug}
@@ -97,8 +97,12 @@ else {
             array_push($modsOutput, $mod->output());
         }
 
+        $now = new DateTime('now');
+        $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+
         $output = [
             "modsHash" => $modsUtil->getHashed(),
+            "updateAt" => $now->format(DateTime::ATOM),
             "mods" => $modsOutput
         ];
 
@@ -110,7 +114,7 @@ else {
 }
 
 // 寫入快取
-if($enableCache && $type = 'json') {
+if($type = 'json') {
     $cacheFilePath = BASE_PATH.$GLOBALS['config']['modsi_cache_rpath'];
     file_put_contents($cacheFilePath, $outputRaw);
 }
