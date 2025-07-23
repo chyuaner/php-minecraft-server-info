@@ -3,6 +3,7 @@
 /config.php
 /database/
 /public/static/mods.json
+/public/static/mods.zip
 /public/storage/all.zip
 
 ### Composer ###
