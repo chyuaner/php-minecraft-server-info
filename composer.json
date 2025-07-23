@@ -12,5 +12,7 @@
             "email": "chyuaner@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "xpaw/php-minecraft-query": "^5.0"
+    }
 }
