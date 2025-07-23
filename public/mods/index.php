@@ -45,15 +45,28 @@ $modsUtil->analyzeModsFolder();
 // 若在網址有指定 /mods/{slug}
 if (!empty($modFileName) && Mods::isFileExist($modFileName)) {
     $mod = new Mod($modFileName);
-    $output = [
-        "modHash" => $mod->getSha1(),
-        "mod" => $mod->output()
-    ];
 
-    // 輸出
-    header('Content-Type: application/json; charset=utf-8');
-    $outputRaw = json_encode($output);
-    echo $outputRaw;
+    switch ($type) {
+        case 'html':
+            $outputRaw = $mod->outputHtml();
+            echo '<ul><li>'.$outputRaw.'</li></ul>';
+            break;
+
+        case 'json':
+        default:
+            $output = [
+                "modHash" => $mod->getSha1(),
+                "mod" => $mod->output()
+            ];
+
+            // 輸出
+            header('Content-Type: application/json; charset=utf-8');
+            $outputRaw = json_encode($output);
+            echo $outputRaw;
+            break;
+    }
+
+    exit;
 }
 // 若沒有帶入單一檔案參數
 else {
