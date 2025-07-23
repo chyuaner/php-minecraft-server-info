@@ -3,9 +3,13 @@ namespace McModUtils;
 
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use SplFileInfo;
+use ZipArchive;
 
 final class Mods
 {
+    private const ZIP_PATH = BASE_PATH.'/public/static/mods.zip';
+
     public static function modsPath() : string {
         return $GLOBALS['config']['mods_path'];
     }
@@ -117,4 +121,46 @@ final class Mods
             return join(DIRECTORY_SEPARATOR, [rtrim(self::modsPath(), '/'), $raw]);
         }
     }
+
+    public function getZipComment(string $zipPath = self::ZIP_PATH): ?string {
+        if (!file_exists($zipPath)) return null;
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath) === true) {
+            $comment = $zip->getArchiveComment();
+            $zip->close();
+            return $comment;
+        }
+        return null;
+    }
+
+    public function zipFolder(string|null $source = null, string $zipPath = self::ZIP_PATH, string|null $comment = null): bool {
+        if (empty($source)) { $source = self::modsPath(); }
+        if (empty($comment)) { $comment = $this->getHashed(); }
+
+        $zip = new ZipArchive();
+        if (!$zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
+            return false;
+        }
+
+        $zip->setArchiveComment($comment);
+
+        $source = realpath($source);
+        $sourceLen = strlen($source) + 1;
+
+        $files = $this->getModPaths();
+
+        foreach ($files as $filePath) {
+            $file = new SplFileInfo($filePath);
+            $relativePath = substr($filePath, $sourceLen);
+
+            if ($file->isDir()) {
+                $zip->addEmptyDir($relativePath);
+            } elseif ($file->isFile()) {
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+
+        return $zip->close();
+    }
+
 }
