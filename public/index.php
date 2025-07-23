@@ -12,7 +12,7 @@ require __DIR__ . '/../bootstrap.php';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-tw">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,6 +25,7 @@ require __DIR__ . '/../bootstrap.php';
         <li>GET /mods</li>
         <li>GET /mods/ApothicAttributes-1.21.1-2.9.0.jar</li>
         <li>GET /files/mods/ApothicAttributes-1.21.1-2.9.0.jar</li>
+        <li>GET /ping</li>
     </ul>
 </body>
 </html>
