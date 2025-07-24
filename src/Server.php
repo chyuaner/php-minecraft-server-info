@@ -39,6 +39,7 @@ final class Server
     }
 
     private function loadFromeDefaultServer() : bool {
+        $this->publicHostString = $GLOBALS['config']['minecraft_public_hoststring'];
         $this->host = $GLOBALS['config']['minecraft_host'];
         $this->port = $GLOBALS['config']['minecraft_port'];
 
