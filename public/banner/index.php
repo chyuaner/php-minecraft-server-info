@@ -17,11 +17,12 @@ if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['banner',
         $$selectorParamName = $pathFilename;
     }
 
-    $enableCache = false;
-    $modFileName = $$selectorParamName;
+    if (!Server::isExistServerId($serverId)) {
+        $serverId = null;
+    }
 }
 
-$server = new Server($serverId);
+$server = new Server($server);
 $hostString = $server->getHostString();
 $name = $server->getName();
 $onlinePlayersCount = $server->getOnlinePlayersCount();

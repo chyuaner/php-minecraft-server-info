@@ -14,9 +14,14 @@ final class Server
 
     protected $pingData;
 
+    public static function isExistServerId($id) : bool {
+        $serverId = $id;
+        return (!empty($serverId) && array_key_exists($serverId, ($GLOBALS['config']['minecraft_servers'])));
+    }
+
     private function loadFromServerId($id) : bool {
         $serverId = $id;
-        if (!empty($serverId) && array_key_exists($serverId, ($GLOBALS['config']['minecraft_servers']))) {
+        if (self::isExistServerId($serverId)) {
             $mc_server = $GLOBALS['config']['minecraft_servers'][$serverId];
 
             $this->id = $serverId;
