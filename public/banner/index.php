@@ -48,11 +48,11 @@ try
     $startPing = microtime(true);
     $hostString = $server->getPublicHostString();
     if ($isShowPlayer) {
-        $playersStr = $server->getPlayersName();
+        $playersStr = implode(', ', $server->getPlayersName());
         if (empty($playersStr)) {
-            $playersStr = '__';
+            $playersStr = 'no player';
         }
-        $name = 'login >  '.implode(', ', $playersStr);;
+        $name = 'Online:  '.$playersStr;
     } else {
         $name = $server->getName();
     }
