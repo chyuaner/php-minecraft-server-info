@@ -31,6 +31,7 @@ require __DIR__ . '/../bootstrap.php';
         <li>GET /files/mods/ApothicAttributes-1.21.1-2.9.0.jar</li>
         <li>GET /zip/mods</li>
         <li>GET /ping</li>
+        <li>GET /banner</li>
     </ul>
 </body>
 </html>

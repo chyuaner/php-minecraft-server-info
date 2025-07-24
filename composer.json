@@ -13,6 +13,7 @@
         }
     ],
     "require": {
-        "xpaw/php-minecraft-query": "^5.0"
+        "xpaw/php-minecraft-query": "^5.0",
+        "games647/minecraft-banner-generator": "^0.4.1"
     }
 }

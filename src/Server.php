@@ -12,6 +12,8 @@ final class Server
     protected $name;
     protected $qport;
 
+    protected $pingData;
+
     private function loadFromServerId($id) : bool {
         $serverId = $id;
         if (!empty($serverId) && array_key_exists($serverId, ($GLOBALS['config']['minecraft_servers']))) {
@@ -55,12 +57,12 @@ final class Server
             $this->loadFromeDefaultServer();
         }
 
-
     }
 
-    public function outputPing() : array {
+    public function fetchPing() : array {
         $host = $this->host;
         $port = $this->port;
+
         try
         {
             $Query = new MinecraftPing( $host, $port );
@@ -79,6 +81,57 @@ final class Server
                 $Query->Close();
             }
         }
+        $this->pingData = $output;
         return $output;
+    }
+
+    public function outputPing() : array {
+        if (empty($this->pingData)) {
+            return $this->fetchPing();
+        }
+        return $this->pingData;
+    }
+
+    public function getHost() : string {
+        return $this->host;
+    }
+
+    public function getHostString() : string {
+        $output = $this->host;
+
+        if ($this->port != 25565) {
+            $output .= ':'.$this->port;
+        }
+        return $output;
+    }
+
+    public function getPort() : int {
+        return $this->port;
+    }
+
+    public function getName() : string|null {
+        return $this->name;
+    }
+
+    public function getMaxPlayersCount() : int {
+        $fetchedOutput = $this->outputPing();
+
+        if (!empty($fetchedOutput['players'])) {
+            if (!empty($fetchedOutput['players']['max'])) {
+                return (int)$fetchedOutput['players']['max'];
+            }
+        }
+        return 0;
+    }
+
+    public function getOnlinePlayersCount() : int {
+        $fetchedOutput = $this->outputPing();
+
+        if (!empty($fetchedOutput['players'])) {
+            if (!empty($fetchedOutput['players']['online'])) {
+                return (int)$fetchedOutput['players']['online'];
+            }
+        }
+        return 0;
     }
 }
