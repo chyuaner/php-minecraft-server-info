@@ -13,6 +13,16 @@
 
 另外在Nginx配合良好的情況下，可以設定特定資料夾直接跳過PHP執行來達到最佳效能。但是檔案載點還是有留下 index.php 以PHP開steam的方式直接output檔案本體（ `/public/files/mods/index.php`），讓網頁伺服器靜態設定失效的時候還能fallback以PHP執行來替代。
 
+## 系統環境
+已測試的作業系統
+* Linux 6.14.0-2-rt3-MANJARO
+    * PHP 8.4.7 (cli) (built: May  6 2025 14:43:39) (NTS)
+* Debian GNU/Linux 12 (bookworm) x86_64
+    * PHP 8.2.28 (cli) (built: Mar 13 2025 18:21:38) (NTS)
+
+### 需要依賴的PHP extensions
+* php-zip
+* php-gd
 
 ## 建置&啟動開發伺服器
 ```
