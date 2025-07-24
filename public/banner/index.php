@@ -5,6 +5,11 @@ use McModUtils\Server;
 use \MinecraftBanner\ServerBanner;
 use xPaw\MinecraftPingException;
 
+$isShowPlayer = false;
+if (!empty($_REQUEST['players'])) {
+    $isShowPlayer = true;
+}
+
 // 若在網址有指定 /ping/{server}
 $selectorParamName = 'serverId';
 $uri = $_SERVER['REQUEST_URI'];
@@ -42,7 +47,16 @@ try
 {
     $startPing = microtime(true);
     $hostString = $server->getPublicHostString();
-    $name = $server->getName();
+    if ($isShowPlayer) {
+        $playersStr = $server->getPlayersName();
+        if (empty($playersStr)) {
+            $playersStr = '__';
+        }
+        $name = 'login >  '.implode(', ', $playersStr);;
+    } else {
+        $name = $server->getName();
+    }
+
     $onlinePlayersCount = $server->getOnlinePlayersCount();
     $maxPlayersCount = $server->getMaxPlayersCount();
 
