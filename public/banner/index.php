@@ -3,8 +3,8 @@ require __DIR__ . '/../../bootstrap.php';
 
 use McModUtils\Server;
 use \MinecraftBanner\ServerBanner;
+use xPaw\MinecraftPingException;
 
-$startPing = microtime(true);
 // 若在網址有指定 /ping/{server}
 $selectorParamName = 'serverId';
 $uri = $_SERVER['REQUEST_URI'];
@@ -22,17 +22,50 @@ if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['banner',
     }
 }
 
-$server = new Server($server);
-$hostString = $server->getHostString();
-$name = $server->getName();
-$onlinePlayersCount = $server->getOnlinePlayersCount();
-$maxPlayersCount = $server->getMaxPlayersCount();
+function outputBanner($title, $subtitle, $player_online, $player_max, $ping) {
+    $output_title = ' '.$title;
+    $output_ping_string = '';
+    if (strlen($output_title) < 30) {
+        $output_ping_string = '    '.round($ping, 0).'ms';
+    }
 
-$endPing = microtime(true);
-$durationPing = ($endPing - $startPing) * 1000;
+    return ServerBanner::server($output_title,
+    '  '.$subtitle
+    , $player_online, $player_max
+        .$output_ping_string
+    , NULL, NULL, $ping);
+}
 
-//tell the browser that we will send the raw image without HTML
-header('Content-type: image/png');
+$server = new Server($serverId);
 
-$banner = ServerBanner::server('  '.$hostString, '  '.$name, $onlinePlayersCount, $maxPlayersCount.'    '.round($durationPing, 0).'ms', NULL, NULL, $durationPing);
-imagepng($banner);
+try
+{
+    $startPing = microtime(true);
+    $hostString = $server->getPublicHostString();
+    $name = $server->getName();
+    $onlinePlayersCount = $server->getOnlinePlayersCount();
+    $maxPlayersCount = $server->getMaxPlayersCount();
+
+    $endPing = microtime(true);
+    $durationPing = ($endPing - $startPing) * 1000;
+
+    //tell the browser that we will send the raw image without HTML
+    header('Content-type: image/png');
+
+    $banner = outputBanner($hostString, $name, $onlinePlayersCount, $maxPlayersCount, $durationPing);
+    imagepng($banner);
+}
+catch( MinecraftPingException $e )
+{
+    http_response_code(500);
+    $hostString = $server->getPublicHostString();
+    $endPing = microtime(true);
+    $durationPing = ($endPing - $startPing) * 1000;
+
+    //tell the browser that we will send the raw image without HTML
+    header('Content-type: image/png');
+
+    $banner = outputBanner($hostString, $e->getMessage(), $onlinePlayersCount, $maxPlayersCount, -1);
+    imagepng($banner);
+
+}

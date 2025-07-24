@@ -7,6 +7,7 @@ use xPaw\MinecraftPingException;
 final class Server
 {
     protected $id;
+    protected $publicHostString;
     protected $host;
     protected $port;
     protected $name;
@@ -25,6 +26,7 @@ final class Server
             $mc_server = $GLOBALS['config']['minecraft_servers'][$serverId];
 
             $this->id = $serverId;
+            $this->publicHostString = $mc_server['public_hoststring'];
             $this->host = $mc_server['host'];
             $this->port = $mc_server['port'];
             $this->name = $mc_server['name'];
@@ -108,6 +110,14 @@ final class Server
             $output .= ':'.$this->port;
         }
         return $output;
+    }
+
+    public function getPublicHostString() : string {
+        if (!empty($this->publicHostString)) {
+            return $this->publicHostString;
+        } else {
+            return $this->getHostString();
+        }
     }
 
     public function getPort() : int {
