@@ -11,6 +11,7 @@ if (!empty($_REQUEST['players'])) {
 }
 
 // 若在網址有指定 /ping/{server}
+$serverId = null;
 $selectorParamName = 'serverId';
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
