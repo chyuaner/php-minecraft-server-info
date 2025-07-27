@@ -3,6 +3,28 @@ require __DIR__ . '/../../../bootstrap.php';
 
 use McModUtils\Mods;
 
+/**
+ * @api {get} /zip/mods 下載全部模組包
+ * @apiName DownloadModsZip
+ * @apiGroup Mods
+ *
+ * @apiDescription
+ * 下載伺服器所使用的全部 mods 模組壓縮包，格式為 `.zip`。
+ * 用於快速同步伺服器端與客戶端模組。
+ *
+ *
+ * @apiSuccess (Success 200) {File} zip 壓縮檔案，`Content-Type: application/zip`
+ *
+ * @apiSuccessExample {zip} 成功範例:
+ *     HTTP/1.1 200 OK
+ *     Content-Disposition: attachment; filename="BarianMcMods整合包-20250727-0906.zip"
+ *     Content-Type: application/zip
+ *     (二進位資料)
+ *
+ * @apiExample 使用範例:
+ *     curl -O https://api-minecraft.yuaner.tw/zip/mods
+ */
+
 $modsUtil = new Mods();
 
 $folderHash = $modsUtil->getHashed();

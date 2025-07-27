@@ -26,7 +26,9 @@
     "url" : "https://api-minecraft.yuaner.tw",
     "order": [
       "getAllMods",
-      "getmod"
+      "getmod",
+      "DownloadFile",
+      "DownloadModsZip"
     ]
   }
 }

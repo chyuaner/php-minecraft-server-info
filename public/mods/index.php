@@ -12,7 +12,7 @@ use McModUtils\Mod;
  * @apiName getAllMods
  * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
  * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
- * @apiHeader {String} Accept 支援：`text/html`, `application/json`。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ * @apiHeader {String="text/html","application/json"} Accept 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
  *
  * @apiSuccessExample {json} JSON輸出
  *     HTTP/1.1 200 OK
@@ -56,10 +56,10 @@ use McModUtils\Mod;
 /**
  * @api {get} /mods/:file 取得單一檔案模組資訊
  * @apiName getmod
- * @apiParam {String} file 選填，伺服器上的Mod檔案名稱
+ * @apiParam {String} file 伺服器上的Mod檔案名稱
  * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
  * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
- * @apiHeader {String} Accept 支援：`text/html`, `application/json`。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ * @apiHeader {String="text/html","application/json"} Accept 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
  *
  * @apiGroup Mods
  *

@@ -4,6 +4,44 @@ require __DIR__ . '/../../bootstrap.php';
 use McModUtils\Server;
 use xPaw\MinecraftPingException;
 
+/**
+ * @api {get} /ping/:server 取得Minecraft伺服器狀態
+ * @apiName Ping
+ * @apiGroup Server
+ * @apiParam {String} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
+ * @apiHeader {String="text/html","application/json"} Accept 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ *
+ * @apiSuccessExample {json} JSON輸出
+ *     HTTP/1.1 200 OK
+ *     {
+ *         "description": "A Minecraft Server",
+ *         "players": {
+ *             "max": 20,
+ *             "online": 2,
+ *             "sample": [
+ *                 {
+ *                     "id": "330ec9fb-cbb3-3ac5-b19e-6678ebde0b18",
+ *                     "name": "Barianyyy0517"
+ *                 },
+ *                 {
+ *                     "id": "58dba7b3-3a27-384f-9145-21fac550cde6",
+ *                     "name": "chyuaner"
+ *                 }
+ *             ]
+ *         },
+ *         "version": {
+ *             "name": "Youer 1.21.1",
+ *             "protocol": 767
+ *         }
+ *     }
+ *
+ * @apiExample 使用範例:
+ *     https://api-minecraft.yuaner.tw/mods
+ *     https://api-minecraft.yuaner.tw/mods/?type=json
+ *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
+ */
+
 // 如果有包含 text/html，就當作瀏覽器
 if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
