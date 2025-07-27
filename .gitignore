@@ -4,6 +4,7 @@
 /database/
 /public/static/mods.json
 /public/static/mods.zip
+/public/docs/
 /public/storage/all.zip
 
 ### Composer ###

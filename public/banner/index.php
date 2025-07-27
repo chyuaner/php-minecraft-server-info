@@ -5,6 +5,33 @@ use McModUtils\Server;
 use \MinecraftBanner\ServerBanner;
 use xPaw\MinecraftPingException;
 
+/**
+ * @api {get} /banner/:server 取得伺服器橫幅圖片
+ * @apiParam {String} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ * @apiQuery {Boolean} [players=false] 是否顯示玩家名單（例如 `?players=1`）。
+ *
+ * @apiName GetServerBanner
+ * @apiGroup Server
+ *
+ * @apiDescription
+ * 產生一張 Minecraft 伺服器狀態的橫幅圖片。
+ * 如果不提供 `:server` 參數，將預設使用主伺服器。
+ * 可透過 `players=1` 顯示上線玩家名單。
+ *
+ *
+ * @apiSuccess (Success 200) {File} png 返回一張 `image/png` 格式的伺服器狀態圖片。
+ *
+ * @apiSuccessExample {png} 成功範例:
+ *     HTTP/1.1 200 OK
+ *     Content-Type: image/png
+ *     (二進位圖片資料)
+ *
+ * @apiExample 使用範例:
+ *     https://api-minecraft.yuaner.tw/banner
+ *     https://api-minecraft.yuaner.tw/banner?players=1
+ *     https://api-minecraft.yuaner.tw/banner/youer1
+ *     https://api-minecraft.yuaner.tw/banner/youer1?players=1
+ */
 $isShowPlayer = false;
 if (!empty($_REQUEST['players'])) {
     $isShowPlayer = true;

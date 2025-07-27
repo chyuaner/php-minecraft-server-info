@@ -1,0 +1,32 @@
+{
+  "name": "php-minecraft-mods-info",
+  "version": "1.0.0",
+  "description": "後端抓取Minecraft資訊",
+  "homepage": "https://github.com/chyuaner/php-minecraft-server-info#readme",
+  "bugs": {
+    "url": "https://github.com/chyuaner/php-minecraft-server-info/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chyuaner/php-minecraft-server-info.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "public/index.php",
+  "scripts": {
+    "doc": "apidoc -i public/ -o public/docs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "apidoc": "^1.2.0"
+  },
+  "apidoc": {
+    "title": "抓取Minecraft資訊專用後端有提供的API",
+    "url" : "https://api-minecraft.yuaner.tw",
+    "order": [
+      "getAllMods",
+      "getmod"
+    ]
+  }
+}
