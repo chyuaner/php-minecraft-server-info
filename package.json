@@ -1,7 +1,7 @@
 {
   "name": "php-minecraft-mods-info",
   "version": "1.0.0",
-  "description": "後端抓取Minecraft資訊",
+  "description": "抓取Minecraft資訊專用後端有提供的API",
   "homepage": "https://github.com/chyuaner/php-minecraft-server-info#readme",
   "bugs": {
     "url": "https://github.com/chyuaner/php-minecraft-server-info/issues"
@@ -22,7 +22,6 @@
     "apidoc": "^1.2.0"
   },
   "apidoc": {
-    "title": "抓取Minecraft資訊專用後端有提供的API",
     "url" : "https://api-minecraft.yuaner.tw",
     "sampleUrl" : "https://api-minecraft.yuaner.tw",
     "order": [
@@ -30,6 +29,14 @@
       "getmod",
       "DownloadFile",
       "DownloadModsZip"
-    ]
+    ],
+    "header": {
+      "title": "概要",
+      "filename": "apidoc-header.md"
+    },
+    "footer": {
+      "title": "關於",
+      "filename": "apidoc-footer.md"
+    }
   }
 }
