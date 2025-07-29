@@ -58,7 +58,6 @@ use McModUtils\Mod;
  * @apiName getmod
  * @apiParam {String} file 伺服器上的Mod檔案名稱
  * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
- * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
  * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
  *
  * @apiGroup Mods
@@ -94,7 +93,7 @@ $selectorParamName = 'file';
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 $pathFilename = basename($path); // "lalala.jar"
-if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['mods', 'index', 'index.php'])) {
+if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['mods', ':file', 'index', 'index.php'])) {
     if (!empty($_REQUEST[$selectorParamName])) {
         $$selectorParamName = $_REQUEST[$selectorParamName];
     } else {
