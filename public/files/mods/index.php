@@ -10,6 +10,7 @@ require __DIR__ . '/../../../bootstrap.php';
  * @apiName DownloadFile
  * @apiParam {String} file 伺服器上的Mod檔案名稱
  *
+ * @apiSampleRequest off
  * @apiSuccess (Success 200) {File} jar 檔案，`Content-Type: application/java-archive`
  *
  * @apiSuccessExample {jar} 成功範例:
