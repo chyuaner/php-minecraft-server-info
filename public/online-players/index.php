@@ -5,57 +5,45 @@ use McModUtils\Server;
 use xPaw\MinecraftPingException;
 
 /**
- * @api {get} /ping/:server 取得Minecraft伺服器狀態
- * @apiName Ping
+ * @api {get} /online-players/:server 取得Minecraft上線玩家名單
+ * @apiName OnlinePlayers
  * @apiGroup Server
  * @apiUse McServers
+ * @apiQuery {string="name"} [otype=name] 要輸出完整資訊，還是只想輸出名字
  * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
  * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
  *
- * @apiSuccessExample {json} JSON輸出
+ * @apiSuccessExample {json} JSON輸出完整資訊
  *     HTTP/1.1 200 OK
- *     {
- *         "description": "A Minecraft Server",
- *         "players": {
- *             "max": 20,
- *             "online": 2,
- *             "sample": [
- *                 {
- *                     "id": "330ec9fb-cbb3-3ac5-b19e-6678ebde0b18",
- *                     "name": "Barianyyy0517"
- *                 },
- *                 {
- *                     "id": "58dba7b3-3a27-384f-9145-21fac550cde6",
- *                     "name": "chyuaner"
- *                 }
- *             ]
- *         },
- *         "version": {
- *             "name": "Youer 1.21.1",
- *             "protocol": 767
+ *     [
+ *         {
+ *             "id": "<uuid>",
+ *             "name": "chyuaner"
  *         }
- *     }
+ *     ]
+ *
+ * @apiSuccessExample {json} otype=name 的JSON輸出
+ *     HTTP/1.1 200 OK
+ *     ["Barianyyy0517", "chyuaner"]
  *
  * @apiErrorExample {json} 伺服器連接異常
  *     HTTP/1.1 500
  *     {
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
- *
- * @apiExample 使用範例:
- *     https://api-minecraft.yuaner.tw/mods
- *     https://api-minecraft.yuaner.tw/mods/?type=json
- *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
  */
 
 // 如果有包含 text/html，就當作瀏覽器
 if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
-    $enableCache = false; // 快取只針對JSON使用，所以非JSON就直接關閉快取
 }
 if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'json') {
     $type = 'json';
-    $enableCache = true;
+}
+
+$otype = 'all';
+if (!empty($_REQUEST['otype'])) {
+    $otype = $_REQUEST['otype'];
 }
 
 // 若在網址有指定 /ping/{server}
@@ -80,7 +68,15 @@ $server = new Server($serverId);
 
 try
 {
-    $output = $server->outputPing();
+    switch ($otype) {
+        case 'name':
+            $output = $server->getPlayersName();
+            break;
+
+        default:
+            $output = $server->getPlayers();
+            break;
+    }
 }
 catch( MinecraftPingException $e )
 {
@@ -105,5 +101,3 @@ finally
             break;
     }
 }
-
-

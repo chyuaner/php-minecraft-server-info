@@ -151,18 +151,24 @@ final class Server
         return 0;
     }
 
-    public function getPlayersName() : array {
+    public function getPlayers() : array {
         $fetchedOutput = $this->outputPing();
 
         if (!empty($fetchedOutput['players'])) {
             if (!empty($fetchedOutput['players']['sample'])) {
                 $playerInfos = $fetchedOutput['players']['sample'];
-                $playerNames = array_map(function($player) {
-                    return $player['name'];
-                }, $playerInfos);
-                return $playerNames;
+                return $playerInfos;
             }
         }
         return [];
+    }
+
+    public function getPlayersName() : array {
+        $playerInfos = $this->getPlayers();
+        $playerNames = array_map(function($player) {
+            return $player['name'];
+        }, $playerInfos);
+
+        return $playerNames;
     }
 }

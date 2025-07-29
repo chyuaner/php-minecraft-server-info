@@ -28,7 +28,10 @@
       "getAllMods",
       "getmod",
       "DownloadFile",
-      "DownloadModsZip"
+      "DownloadModsZip",
+      "Ping",
+      "GetServerBanner",
+      "OnlinePlayers"
     ],
     "header": {
       "title": "概要",
