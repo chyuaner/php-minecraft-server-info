@@ -19,11 +19,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "apidoc": "^1.2.0"
+    "apidoc": "github:chyuaner/apidoc"
   },
   "apidoc": {
-    "url" : "https://api-minecraft.yuaner.tw",
-    "sampleUrl" : "https://api-minecraft.yuaner.tw",
+    "url": "https://api-minecraft.yuaner.tw",
+    "sampleUrl": "https://api-minecraft.yuaner.tw",
     "order": [
       "getAllMods",
       "getmod",
