@@ -41,7 +41,6 @@ use xPaw\MinecraftPingException;
  *     {
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
- */
  *
  * @apiExample 使用範例:
  *     https://api-minecraft.yuaner.tw/mods
