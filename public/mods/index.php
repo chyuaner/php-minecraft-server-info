@@ -94,7 +94,7 @@ $selectorParamName = 'file';
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 $pathFilename = basename($path); // "lalala.jar"
-if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['index', 'index.php'])) {
+if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['mods', 'index', 'index.php'])) {
     if (!empty($_REQUEST[$selectorParamName])) {
         $$selectorParamName = $_REQUEST[$selectorParamName];
     } else {
