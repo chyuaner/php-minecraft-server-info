@@ -34,6 +34,7 @@ use xPaw\MinecraftPingException;
  */
 
 // 如果有包含 text/html，就當作瀏覽器
+$type = 'json';
 if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
 }
@@ -51,7 +52,7 @@ $selectorParamName = 'serverId';
 $uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($uri, PHP_URL_PATH);
 $pathFilename = basename($path); // "lalala.jar"
-if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['ping', 'index', 'index.php'])) {
+if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['online-players', 'index', 'index.php'])) {
     if (!empty($_REQUEST[$selectorParamName])) {
         $$selectorParamName = $_REQUEST[$selectorParamName];
     } else {
