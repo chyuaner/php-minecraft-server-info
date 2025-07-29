@@ -18,6 +18,9 @@ use xPaw\MinecraftPingException;
  * 如果不提供 `:server` 參數，將預設使用主伺服器。
  * 可透過 `players=1` 顯示上線玩家名單。
  *
+ * #### 預覽
+ * <img src="https://api-minecraft.yuaner.tw/banner/youer1?players=1">
+ *
  * @apiSuccess (Success 200) {File} png 返回一張 `image/png` 格式的伺服器狀態圖片。
  *
  * @apiSuccessExample {png} 成功範例:
