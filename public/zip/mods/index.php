@@ -12,7 +12,7 @@ use McModUtils\Mods;
  * 下載伺服器所使用的全部 mods 模組壓縮包，格式為 `.zip`。
  * 用於快速同步伺服器端與客戶端模組。
  *
- *
+ * @apiSampleRequest off
  * @apiSuccess (Success 200) {File} zip 壓縮檔案，`Content-Type: application/zip`
  *
  * @apiSuccessExample {zip} 成功範例:

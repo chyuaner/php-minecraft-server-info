@@ -8,9 +8,9 @@ use xPaw\MinecraftPingException;
  * @api {get} /ping/:server 取得Minecraft伺服器狀態
  * @apiName Ping
  * @apiGroup Server
- * @apiParam {String} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ * @apiUse McServers
  * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
- * @apiHeader {String="text/html","application/json"} Accept 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
  *
  * @apiSuccessExample {json} JSON輸出
  *     HTTP/1.1 200 OK
@@ -35,6 +35,13 @@ use xPaw\MinecraftPingException;
  *             "protocol": 767
  *         }
  *     }
+ *
+ * @apiErrorExample {json} JSON輸出
+ *     HTTP/1.1 500 Not Found
+ *     {
+ *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
+ *     }
+ */
  *
  * @apiExample 使用範例:
  *     https://api-minecraft.yuaner.tw/mods

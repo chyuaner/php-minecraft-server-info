@@ -24,6 +24,7 @@
   "apidoc": {
     "title": "抓取Minecraft資訊專用後端有提供的API",
     "url" : "https://api-minecraft.yuaner.tw",
+    "sampleUrl" : "https://api-minecraft.yuaner.tw",
     "order": [
       "getAllMods",
       "getmod",

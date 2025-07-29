@@ -1,6 +1,11 @@
 <?php
 require __DIR__ . '/../bootstrap.php';
 
+/**
+ * @apiDefine McServers
+ * @apiParam {String="youer1","youer2"} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ */
+
 // use McModUtils\Mods;
 
 

@@ -45,10 +45,20 @@ php -S 127.0.0.1:8000 -t public
 ## 上線部署
 ### Nginx設定
 
+
+### apidoc
+伺服器需要安裝
+```
+apt install nodejs npm
+sudo chown -R 33:33 "/var/www/.npm"
+```
+
+
+
 ## 後端輸出草稿
 ### 網址規劃
 * ✅GET https://your.server/api/mods : 模組清單（最重要）
-* GET https://your.server/api/mods?type=html : 以HTML格式輸出模組清單（可能先略過）
+* ✅GET https://your.server/api/mods?type=html : 以HTML格式輸出模組清單（可能先略過）
 * ✅GET https://your.server/api/mods?force=1 : 強制更新模組資訊
 * ✅GET https://your.server/api/mods/{filename} : 單一模組完整資訊
 * ✅GET https://your.server/files/mod/*.jar : 模組檔案本體載點（設定Nginx直連檔案本體，跳過PHP）
