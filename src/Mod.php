@@ -188,7 +188,18 @@ class Mod {
     }
 
     function getDownloadUrl() : string {
-        return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->getFileName());
+
+        $originFullPath = $this->modFilePath;
+        $relativePath = substr($originFullPath, strlen(realpath(Mods::modsPath())) + 1);
+
+        $parts = explode('/', $relativePath);
+        $encodedParts = array_map('rawurlencode', $parts); // rawurlencode 對於 URL path 更適合
+        $encodedPath = implode('/', $encodedParts);
+
+        $url = rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. $encodedPath;
+
+        return $url;
+        // return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->getFileName());
     }
 
     function getWebsiteUrl() : string {

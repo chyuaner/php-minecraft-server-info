@@ -58,7 +58,9 @@ final class Mods
                 $mtime = $file->getMTime();
                 $size = $file->getSize();
 
-                $files[] = basename($file->getPathname()); // 存檔名
+                $basePath = realpath($directory); // 確保是絕對路徑
+                $files[] = substr($file->getPathname(), strlen($basePath) + 1);
+                // $files[] = basename($file->getPathname()); // 存檔名
                 $paths[] = $file->getPathname(); // 存檔名
                 $hashComponents[] = $relativePath . '|' . $mtime . '|' . $size;
             }
