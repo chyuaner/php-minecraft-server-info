@@ -25,7 +25,12 @@ require __DIR__ . '/../../../bootstrap.php';
 
 header('X-Served-By: PHP-Mods-Stream');
 
-$modFile = basename(urldecode($_SERVER['REQUEST_URI']));// e.g. curios.jar
+// $modFile = basename(urldecode($_SERVER['REQUEST_URI']));// e.g. curios.jar
+$basePath = '/files/mods/';
+$requestPath = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+
+// 取得 mods 資料夾下的相對路徑
+$modFile = substr($requestPath, strlen($basePath));
 $modPath = Mods::parseFileInput($modFile);
 
 if (!preg_match('/\.jar$/', $modFile)) {
