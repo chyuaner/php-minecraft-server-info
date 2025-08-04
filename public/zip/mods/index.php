@@ -44,9 +44,10 @@ if (!file_exists($zipPath)) {
 $zipMTime = (new DateTime())->setTimestamp(filemtime($zipPath));
 $zipMTime->setTimezone(new DateTimeZone('Asia/Taipei'));
 $zipFileName = 'BarianMcMods整合包-'.$zipMTime->format("Ymd-Hi").'.zip';
+$encodedFileName = rawurlencode($zipFileName);
 
 header('Content-Type: application/zip');
-header('Content-Disposition: attachment; filename="' . $zipFileName . '"');
+header("Content-Disposition: attachment; filename=\"$zipFileName\"; filename*=UTF-8''$encodedFileName");
 header('Content-Length: ' . filesize($zipPath));
 header('Cache-Control: no-cache, must-revalidate');
 header('Pragma: no-cache');
