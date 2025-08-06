@@ -87,7 +87,7 @@ if (!empty($_REQUEST['force'])) {
     $enableCache = false;
 }
 
-// 若在網址有指定 /mods/{slug}
+// 若在網址有指定 /mods/{slug} 指定檔案名稱
 // 取得帶入的網址參數
 $selectorParamName = 'file';
 $uri = $_SERVER['REQUEST_URI'];

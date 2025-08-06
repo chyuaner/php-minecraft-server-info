@@ -53,7 +53,9 @@ final class Mods
                 }
             }
 
-            if ($file->isFile() && str_ends_with($file->getFilename(), '.jar')) {
+            $isProcressFilename = !str_starts_with($file->getFilename(), 'hide_') && str_ends_with($file->getFilename(), '.jar') || str_ends_with($file->getFilename(), '.jar.client');
+
+            if ($file->isFile() && $isProcressFilename) {
                 $relativePath = substr($file->getPathname(), strlen($directory));
                 $mtime = $file->getMTime();
                 $size = $file->getSize();
