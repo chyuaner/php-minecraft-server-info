@@ -78,7 +78,7 @@ if ($_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', '
     $type = 'html';
     $enableCache = false; // 快取只針對JSON使用，所以非JSON就直接關閉快取
 }
-if ($_REQUEST['type'] == 'json') {
+if ($_REQUEST['type'] == 'json' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
     $type = 'json';
     $enableCache = true;
 }

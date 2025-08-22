@@ -38,7 +38,7 @@ $type = 'json';
 if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
     $type = 'html';
 }
-if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'json') {
+if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'json' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
     $type = 'json';
 }
 
