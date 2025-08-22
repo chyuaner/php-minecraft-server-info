@@ -29,7 +29,7 @@ try
 }
 catch( MinecraftQueryException $e )
 {
-    http_response_code(500);
+    http_response_code(502);
     $output = ['error' => $e->getMessage()];
 }
 
