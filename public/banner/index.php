@@ -101,7 +101,7 @@ try
 }
 catch( MinecraftPingException $e )
 {
-    http_response_code(502);
+    http_response_code(520);
     $hostString = $server->getPublicHostString();
     $endPing = microtime(true);
     $durationPing = ($endPing - $startPing) * 1000;
