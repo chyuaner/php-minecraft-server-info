@@ -1,8 +1,21 @@
 <?php
+$baseMinecraftPath = '/opt/minecraft/mc-server';
+
 return [
     // 請依據你的環境與需求修改
-    'mods_path' => '/var/www/html/mods',
     'base_url' => 'http://localhost:8000',
+    'mods_path' => $baseMinecraftPath.'/mods',
+    'mods_client_path' => $baseMinecraftPath.'/clientmods',
+
+    'sync_folders' => [
+        $baseMinecraftPath.'/config',
+        $baseMinecraftPath.'/defaultconfigs',
+        $baseMinecraftPath.'/kubejs',
+        $baseMinecraftPath.'/modernfix',
+        $baseMinecraftPath.'/resourcepacks',
+        $baseMinecraftPath.'/tacz',
+        $baseMinecraftPath.'/tlm_custom_pack',
+    ],
 
     // 主要伺服器進入點（若有用到Velocity做為群組伺服器(代理伺服器)，這部份填代理伺服器主要進入點）
     'minecraft_public_hoststring' => 'mcserver.barian.moe',
