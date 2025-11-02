@@ -1,4 +1,6 @@
 <?php
+
+use App\ResponseFormatter;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -36,6 +38,28 @@ $errorMiddleware = $app->addErrorMiddleware(false, true, true);
 $app->get('/', function (Request $request, Response $response, $args) {
     $response->getBody()->write("Hello world!");
     return $response;
+});
+
+$app->get('/hello', function ($request, $response) {
+    $data = ['message' => 'Hello world!'];
+
+    $formatter = new ResponseFormatter();
+
+    // 普通 route
+    return $formatter->format($request, $data);
+});
+
+$app->get('/special', function ($request, $response) {
+    $data = ['message' => 'Special handling'];
+
+    $formatter = new ResponseFormatter();
+
+    if ($formatter->isJson($request)) {
+        // JSON 模式可以額外處理
+        $data['extra'] = 'This only exists in JSON mode';
+    }
+
+    return $formatter->format($request, $data);
 });
 
 $app->get('/favicon.ico', function (Request $request, Response $response, $args) {
