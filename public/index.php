@@ -1,55 +1,45 @@
 <?php
-require __DIR__ . '/../bootstrap.php';
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
 
-$defaultApiFile = __DIR__.'/mods/index.php';
-
-// 如果有包含 text/html，就當作瀏覽器
-$type = 'json';
-if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'html' || str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'text/html')) {
-    $type = 'html';
-}
-if (!empty($_REQUEST['type']) && $_REQUEST['type'] == 'json') {
-    $type = 'json';
-}
-
-if ($type == 'json') {
-    include $defaultApiFile;
-    exit;
-}
+require __DIR__ . '/../vendor/autoload.php';
 
 /**
- * @apiDefine McServers
- * @apiParam {String="youer1","youer2"} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ * Instantiate App
+ *
+ * In order for the factory to work you need to ensure you have installed
+ * a supported PSR-7 implementation of your choice e.g.: Slim PSR-7 and a supported
+ * ServerRequest creator (included with Slim PSR-7)
  */
-?>
+$app = AppFactory::create();
 
-<!DOCTYPE html>
-<html lang="zh-tw">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft 橋接遊戲伺服器用的後端</title>
+/**
+  * The routing middleware should be added earlier than the ErrorMiddleware
+  * Otherwise exceptions thrown from it will not be handled by the middleware
+  */
+$app->addRoutingMiddleware();
 
-    <?php
-        if ($type=='html' && file_exists('docs/index.html')) {
-            echo '<meta http-equiv="refresh" content="0;url=/docs/index.html">';
-        }
-    ?>
-</head>
-<body>
-    <h1>Minecraft 橋接遊戲伺服器用的後端</h1>
+/**
+ * Add Error Middleware
+ *
+ * @param bool                  $displayErrorDetails -> Should be set to false in production
+ * @param bool                  $logErrors -> Parameter is passed to the default ErrorHandler
+ * @param bool                  $logErrorDetails -> Display error details in error log
+ * @param LoggerInterface|null  $logger -> Optional PSR-3 Logger
+ *
+ * Note: This middleware should be added last. It will not handle any exceptions/errors
+ * for middleware added after it.
+ */
+$errorMiddleware = $app->addErrorMiddleware(false, true, true);
 
-    <h2>伺服器位址</h2>
-    <?= $GLOBALS['config']['minecraft_host'] ?>:<?= $GLOBALS['config']['minecraft_port'] ?>
+$app->get('/', function (Request $request, Response $response, $args) {
+    $response->getBody()->write("Hello world!");
+    return $response;
+});
 
-    <h2>已有功能</h2>
-    <ul>
-        <li>GET /mods</li>
-        <li>GET /mods/ApothicAttributes-1.21.1-2.9.0.jar</li>
-        <li>GET /files/mods/ApothicAttributes-1.21.1-2.9.0.jar</li>
-        <li>GET /zip/mods</li>
-        <li>GET /ping</li>
-        <li>GET /banner</li>
-    </ul>
-</body>
-</html>
+$app->get('/favicon.ico', function (Request $request, Response $response, $args) {
+    return $response->withStatus(204); // No Content
+});
+
+$app->run();
