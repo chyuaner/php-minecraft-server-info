@@ -6,7 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Slim\Views\PhpRenderer;
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../bootstrap.php';
 
 /**
  * Instantiate App
@@ -34,7 +34,11 @@ $app->addRoutingMiddleware();
  * Note: This middleware should be added last. It will not handle any exceptions/errors
  * for middleware added after it.
  */
-$errorMiddleware = $app->addErrorMiddleware(false, true, true);
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+// ============================================================================
+
+require __DIR__ . '/mods.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
     // $formatter = new ResponseFormatter();
