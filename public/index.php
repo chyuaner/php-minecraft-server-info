@@ -4,6 +4,7 @@ use App\ResponseFormatter;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use Slim\Views\PhpRenderer;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -36,8 +37,18 @@ $app->addRoutingMiddleware();
 $errorMiddleware = $app->addErrorMiddleware(false, true, true);
 
 $app->get('/', function (Request $request, Response $response, $args) {
-    $response->getBody()->write("Hello world!");
-    return $response;
+    // $formatter = new ResponseFormatter();
+    // if ($formatter->isJson($request)) {
+    //     $uri = $request->getUri()->withPath('/mods');
+    //     $newRequest = $request->withUri($uri);
+
+    //     // 重新丟給 Slim 執行
+    //     return $app->handle($newRequest);
+    // }
+
+    $renderer = new PhpRenderer(__DIR__ . '/../src/templates');
+
+    return $renderer->render($response, 'index.php');
 });
 
 $app->get('/hello', function ($request, $response) {
@@ -49,18 +60,6 @@ $app->get('/hello', function ($request, $response) {
     return $formatter->format($request, $data);
 });
 
-$app->get('/special', function ($request, $response) {
-    $data = ['message' => 'Special handling'];
-
-    $formatter = new ResponseFormatter();
-
-    if ($formatter->isJson($request)) {
-        // JSON 模式可以額外處理
-        $data['extra'] = 'This only exists in JSON mode';
-    }
-
-    return $formatter->format($request, $data);
-});
 
 $app->get('/favicon.ico', function (Request $request, Response $response, $args) {
     return $response->withStatus(204); // No Content
