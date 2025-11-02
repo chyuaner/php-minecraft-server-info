@@ -5,7 +5,7 @@ use McModUtils\Server;
 use xPaw\MinecraftPingException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-
+use xPaw\MinecraftQuery;
 
 /**
  * @api {get} /ping/:server 取得Minecraft伺服器狀態
@@ -77,7 +77,24 @@ $app->get('/ping', function (Request $request, Response $response, array $args) 
     // }
 
     $formatter = new ResponseFormatter();
-
-    // 普通 route
     return $formatter->format($request, $output);
 });
+
+$app->get('/query', function (Request $request, Response $response, array $args) {
+    $output = [];
+    $Query = new MinecraftQuery();
+    $Query->Connect( $GLOBALS['config']['minecraft_host'], $GLOBALS['config']['minecraft_qport'] );
+    $output = [
+        'info' => $Query->GetInfo(),
+        'players' => $Query->GetPlayers(),
+    ];
+    // catch( MinecraftQueryException $e )
+    // {
+    //     http_response_code(507);
+    //     $output = ['error' => $e->getMessage()];
+    // }
+
+    $formatter = new ResponseFormatter();
+    return $formatter->format($request, $output);
+
+} );
