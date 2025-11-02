@@ -39,6 +39,7 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 // ============================================================================
 
 require __DIR__ . '/mods.php';
+require __DIR__ . '/server.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
     // $formatter = new ResponseFormatter();
