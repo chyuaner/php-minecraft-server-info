@@ -6,22 +6,6 @@ use McModUtils\Mods;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-// $app->group('/api', function ($group) {
-
-//     $group->get('/status', function (Request $request, Response $response, $args) {
-//         $data = ['status' => 'ok'];
-//         $response->getBody()->write(json_encode($data));
-//         return $response->withHeader('Content-Type', 'application/json');
-//     });
-
-//     $group->get('/time', function (Request $request, Response $response, $args) {
-//         $data = ['time' => date('Y-m-d H:i:s')];
-//         $response->getBody()->write(json_encode($data));
-//         return $response->withHeader('Content-Type', 'application/json');
-//     });
-
-// });
-
 /**
  * @api {get} /mods 取得模組列表
  * @apiGroup Mods
