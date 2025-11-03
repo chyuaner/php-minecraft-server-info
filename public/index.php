@@ -5,6 +5,7 @@
  * @apiParam {String="youer1","youer2"} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
  */
 
+use App\AppErrorHandler;
 use App\ResponseFormatter;
 use Middlewares\TrailingSlash;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -41,6 +42,14 @@ $app->addRoutingMiddleware();
  * for middleware added after it.
  */
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+// $errorMiddleware->setDefaultErrorHandler(AppErrorHandler::class);
+$callableResolver = $app->getCallableResolver();
+$responseFactory = $app->getResponseFactory();
+
+// 傳入實例，確保建構子正確
+$errorMiddleware->setDefaultErrorHandler(
+    new AppErrorHandler($callableResolver, $responseFactory)
+);
 
 $app->add(new TrailingSlash(trailingSlash: false)); // true adds the trailing slash (false removes it)
 
