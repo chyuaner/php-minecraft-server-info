@@ -143,15 +143,17 @@ $app->get('/mods', function (Request $request, Response $response, array $args) 
  */
 
 $app->get('/mods/{filename}', function (Request $request, Response $response, array $args) {
+    $baseModsPath = $GLOBALS['config']['mods_path'];
     $formatter = new ResponseFormatter();
     $modFileName = $args['filename'];
+    $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
 
     // ------------------------------------------------------------------------
 
     $modsUtil = new Mods();
     $modsUtil->analyzeModsFolder();
 
-    $mod = new Mod($modFileName);
+    $mod = new Mod($modFilePath);
     if (!$formatter->isJson($request)) {
         $outputRaw = $mod->outputHtml();
         echo '<ul><li>'.$outputRaw.'</li></ul>';

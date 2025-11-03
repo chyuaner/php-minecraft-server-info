@@ -5,7 +5,28 @@ return [
     // 請依據你的環境與需求修改
     'base_url' => 'http://localhost:8000',
     'mods_path' => $baseMinecraftPath.'/mods',
-    'mods_client_path' => $baseMinecraftPath.'/clientmods',
+    'serveronly_prefixs' => ['serveronly_', 'server_'],
+
+    'mods' => [
+        'common' => [
+            'path' => $baseMinecraftPath.'/mods',
+            'dl_urlpath' => '/files/mods/',
+            'ignore_serveronly_prefix' => true,
+            'only_serveronly_prefix' => false,
+        ],
+        'client' => [
+            'path' => $baseMinecraftPath.'/clientmods',
+            'dl_urlpath' => '/files/clientmods/',
+            'ignore_serveronly_prefix' => true,
+            'only_serveronly_prefix' => false,
+        ],
+        'server' => [
+            'path' => $baseMinecraftPath.'/mods',
+            'dl_urlpath' => '/files/mods/',
+            'ignore_serveronly_prefix' => false,
+            'only_serveronly_prefix' => true,
+        ]
+    ],
 
     'sync_folders' => [
         $baseMinecraftPath.'/config',

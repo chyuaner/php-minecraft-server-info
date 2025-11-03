@@ -9,8 +9,16 @@ class Mod {
     protected $version = '';
     protected $authors = [];
 
-    private function parseFileInput(string $raw) {
-        return Mods::parseFileInput($raw);
+    private function parseFileInput(string $raw) : string {
+
+        // 若輸入的只有單檔檔名
+        if (basename($raw) === $raw) {
+            return join(DIRECTORY_SEPARATOR, [rtrim($GLOBALS['config']['mods_path'], '/'), $raw]);
+        }
+        // 其他情況，直接當作絕對路徑
+        else {
+            return $raw;
+        }
     }
 
     public function __construct(string $fileName) {
@@ -187,10 +195,29 @@ class Mod {
         return sha1_file($this->modFilePath);
     }
 
+    public function getBasePath() : string {
+        $modFilePath = $this->modFilePath;
+
+        if (!empty($GLOBALS['config']['mods_path'])
+            && str_contains($modFilePath, $GLOBALS['config']['mods_path'])) {
+            return $GLOBALS['config']['mods_path'];
+        }
+        elseif (!empty($GLOBALS['config']['mods'])
+            && is_array($GLOBALS['config']['mods'])) {
+                foreach ($GLOBALS['config']['mods'] as $modGroup) {
+                    if (!empty($modGroup['path']
+                    && str_contains($modFilePath, $modGroup['path']))) {
+                        return $modGroup['path'];
+                    }
+            }
+        }
+        return '';
+    }
+
     function getDownloadUrl() : string {
 
         $originFullPath = $this->modFilePath;
-        $relativePath = substr($originFullPath, strlen(realpath(Mods::modsPath())) + 1);
+        $relativePath = substr($originFullPath, strlen(realpath($this->getBasePath())) + 1);
 
         $parts = explode('/', $relativePath);
         $encodedParts = array_map('rawurlencode', $parts); // rawurlencode 對於 URL path 更適合
