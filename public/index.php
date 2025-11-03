@@ -57,6 +57,7 @@ $app->add(new TrailingSlash(trailingSlash: false)); // true adds the trailing sl
 // ============================================================================
 
 require __DIR__ . '/mods.php';
+require __DIR__ . '/mods-v3.php';
 require __DIR__ . '/server.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
