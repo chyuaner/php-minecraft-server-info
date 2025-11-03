@@ -52,6 +52,79 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  *     https://api-minecraft.yuaner.tw/mods/?type=json
  *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
  */
+$app->get('/mods', function (Request $request, Response $response, array $args) {
+    $queryParams = $request->getQueryParams();
+    $formatter = new ResponseFormatter();
+    $enableCache = $formatter->isJson($request);
+
+
+    if (!empty($queryParams['force'])) {
+        $enableCache = false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    $modsUtil = new Mods();
+    $modsUtil->analyzeModsFolder();
+    $formatter = new ResponseFormatter();
+
+    // 若有啟用快取，就從快取抓
+    if ($enableCache && $formatter->isJson($request)) {
+
+        // 快取 $cacheFile
+        $cacheFile = (BASE_PATH.'/public/static/mods.json');
+        if (file_exists($cacheFile)) {
+
+            // 檢查該資料夾有無被變動過
+            $currentHash = $modsUtil->getHashed();
+            $cache = json_decode(file_get_contents($cacheFile), true);
+            if ($cache['modsHash'] == $currentHash) {
+
+                $output = $cache;
+                header('Content-Type: application/json; charset=utf-8');
+                $outputRaw = json_encode($output);
+                echo $outputRaw;
+                exit;
+            }
+        }
+    }
+
+    $modsFileList = $modsUtil->getModNames();
+
+    $modsOutput = [];
+    foreach ($modsFileList as $modFileName) {
+        $mod = new Mod($modFileName);
+        array_push($modsOutput, $mod->output());
+    }
+
+    $now = new DateTime('now');
+    $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+
+    $output = [
+        "modsHash" => $modsUtil->getHashed(),
+        "updateAt" => $now->format(DateTime::ATOM),
+        "mods" => $modsOutput
+    ];
+
+    // 寫入快取
+    $cacheFilePath = BASE_PATH.'/public/static/mods.json';
+    $outputRaw = json_encode($output);
+    file_put_contents($cacheFilePath, $outputRaw);
+
+    // 輸出
+    if (!$formatter->isJson($request)) {
+        echo '<ul>';
+        foreach ($modsFileList as $modFileName) {
+            $mod = new Mod($modFileName);
+            echo '<li>';
+            echo $mod->outputHtml();
+            echo '</li>';
+        }
+        echo '</ul>';
+        exit;
+    }
+    return $formatter->format($request, $output);
+});
 
 /**
  * @api {get} /mods/:file 取得單一檔案模組資訊
@@ -69,105 +142,30 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json&force=1
  */
 
-$app->get('/mods[/{filename}]', function (Request $request, Response $response, array $args) {
-    $queryParams = $request->getQueryParams();
+$app->get('/mods/{filename}', function (Request $request, Response $response, array $args) {
     $formatter = new ResponseFormatter();
-    $modFileName = null;
-    $enableCache = $formatter->isJson($request);
-
-
-    if (!empty($queryParams['force'])) {
-        $enableCache = false;
-    }
-
-    if (!empty($args['filename']) && !in_array($args['filename'], [':file', ':filename'])) {
-        $modFileName = $args['filename'];
-        $enableCache = false;
-    }
+    $modFileName = $args['filename'];
 
     // ------------------------------------------------------------------------
 
     $modsUtil = new Mods();
     $modsUtil->analyzeModsFolder();
 
-    if (!empty($modFileName) && Mods::isFileExist($modFileName)) {
-        $mod = new Mod($modFileName);
-        if (!$formatter->isJson($request)) {
-            $outputRaw = $mod->outputHtml();
-            echo '<ul><li>'.$outputRaw.'</li></ul>';
-            exit;
-        }
-
-        $output = [
-            "modHash" => $mod->getSha1(),
-            "mod" => $mod->output()
-        ];
-        $formatter = new ResponseFormatter();
-
-        // 普通 route
-        return $formatter->format($request, $output);
+    $mod = new Mod($modFileName);
+    if (!$formatter->isJson($request)) {
+        $outputRaw = $mod->outputHtml();
+        echo '<ul><li>'.$outputRaw.'</li></ul>';
+        exit;
     }
-    else {
-        // 若有啟用快取，就從快取抓
-        $formatter = new ResponseFormatter();
 
-        if ($enableCache && $formatter->isJson($request)) {
+    $output = [
+        "modHash" => $mod->getSha1(),
+        "mod" => $mod->output()
+    ];
+    $formatter = new ResponseFormatter();
 
-            // 快取 $cacheFile
-            $cacheFile = (BASE_PATH.'/public/static/mods.json');
-            if (file_exists($cacheFile)) {
-
-                // 檢查該資料夾有無被變動過
-                $currentHash = $modsUtil->getHashed();
-                $cache = json_decode(file_get_contents($cacheFile), true);
-                if ($cache['modsHash'] == $currentHash) {
-
-                    $output = $cache;
-                    header('Content-Type: application/json; charset=utf-8');
-                    $outputRaw = json_encode($output);
-                    echo $outputRaw;
-                    exit;
-                }
-            }
-        }
-
-        $modsFileList = $modsUtil->getModNames();
-
-        $modsOutput = [];
-        foreach ($modsFileList as $modFileName) {
-            $mod = new Mod($modFileName);
-            array_push($modsOutput, $mod->output());
-        }
-
-        $now = new DateTime('now');
-        $now->setTimezone(new DateTimeZone('Asia/Taipei'));
-
-        $output = [
-            "modsHash" => $modsUtil->getHashed(),
-            "updateAt" => $now->format(DateTime::ATOM),
-            "mods" => $modsOutput
-        ];
-
-        // 寫入快取
-        $cacheFilePath = BASE_PATH.'/public/static/mods.json';
-        $outputRaw = json_encode($output);
-        file_put_contents($cacheFilePath, $outputRaw);
-
-        if (!$formatter->isJson($request)) {
-            echo '<ul>';
-            foreach ($modsFileList as $modFileName) {
-                $mod = new Mod($modFileName);
-                echo '<li>';
-                echo $mod->outputHtml();
-                echo '</li>';
-            }
-            echo '</ul>';
-            exit;
-        }
-
-        // 普通 route
-        return $formatter->format($request, $output);
-    }
+    // 普通 route
+    return $formatter->format($request, $output);
 });
 
 /**
