@@ -6,6 +6,7 @@
  */
 
 use App\ResponseFormatter;
+use Middlewares\TrailingSlash;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -40,6 +41,8 @@ $app->addRoutingMiddleware();
  * for middleware added after it.
  */
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$app->add(new TrailingSlash(trailingSlash: true)); // true adds the trailing slash (false removes it)
 
 // ============================================================================
 

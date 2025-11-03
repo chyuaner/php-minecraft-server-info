@@ -51,23 +51,9 @@ use xPaw\MinecraftQuery;
  *     https://api-minecraft.yuaner.tw/mods/?type=json
  *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
  */
-$app->get('/ping', function (Request $request, Response $response, array $args) {
-
+$app->get('/ping/[{serverId}]', function (Request $request, Response $response, array $args) {
     // 若在網址有指定 /ping/{server}
-    $selectorParamName = 'serverId';
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
-    $pathFilename = basename($path); // "lalala.jar"
-    if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['ping', 'index', 'index.php'])) {
-        if (!empty($_REQUEST[$selectorParamName])) {
-            $$selectorParamName = $_REQUEST[$selectorParamName];
-        } else {
-            $$selectorParamName = $pathFilename;
-        }
-    }
-
-    // -----------------------------------------------------------------------------
-
+    $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
     $server = new Server($serverId);
 
     $output = $server->outputPing();
@@ -81,7 +67,7 @@ $app->get('/ping', function (Request $request, Response $response, array $args) 
     return $formatter->format($request, $output);
 });
 
-$app->get('/query', function (Request $request, Response $response, array $args) {
+$app->get('/query/', function (Request $request, Response $response, array $args) {
     $output = [];
     $Query = new MinecraftQuery();
     $Query->Connect( $GLOBALS['config']['minecraft_host'], $GLOBALS['config']['minecraft_qport'] );
@@ -128,24 +114,10 @@ $app->get('/query', function (Request $request, Response $response, array $args)
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
  */
-$app->get('/online-players', function (Request $request, Response $response, array $args) {
-    $otype = 'all';
-    if (!empty($_REQUEST['otype'])) {
-        $otype = $_REQUEST['otype'];
-    }
-
-    // 若在網址有指定 /ping/{server}
-    $selectorParamName = 'serverId';
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
-    $pathFilename = basename($path); // "lalala.jar"
-    if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['online-players', 'index', 'index.php'])) {
-        if (!empty($_REQUEST[$selectorParamName])) {
-            $$selectorParamName = $_REQUEST[$selectorParamName];
-        } else {
-            $$selectorParamName = $pathFilename;
-        }
-    }
+$app->get('/online-players/[{serverId}]', function (Request $request, Response $response, array $args) {
+    $queryParams = $request->getQueryParams();
+    $otype = $queryParams['otype'] ?? 'all';
+    $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
 
     // -----------------------------------------------------------------------------
 
@@ -198,29 +170,10 @@ $app->get('/online-players', function (Request $request, Response $response, arr
  *     https://api-minecraft.yuaner.tw/banner/youer1
  *     https://api-minecraft.yuaner.tw/banner/youer1?players=1
  */
-$app->get('/banner', function (Request $request, Response $response, array $args) {
-    $isShowPlayer = false;
-    if (!empty($_REQUEST['players'])) {
-        $isShowPlayer = true;
-    }
-
-    // 若在網址有指定 /ping/{server}
-    $serverId = null;
-    $selectorParamName = 'serverId';
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
-    $pathFilename = basename($path); // "lalala.jar"
-    if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['banner', 'index', 'index.php'])) {
-        if (!empty($_REQUEST[$selectorParamName])) {
-            $$selectorParamName = $_REQUEST[$selectorParamName];
-        } else {
-            $$selectorParamName = $pathFilename;
-        }
-
-        if (!Server::isExistServerId($serverId)) {
-            $serverId = null;
-        }
-    }
+$app->get('/banner/[{serverId}]', function (Request $request, Response $response, array $args) {
+    $queryParams = $request->getQueryParams();
+    $isShowPlayer = !empty($queryParams['players']) ? true : false;
+    $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
 
     function outputBanner($title, $subtitle, $player_online, $player_max, $ping) {
         $output_title = ' '.$title;
