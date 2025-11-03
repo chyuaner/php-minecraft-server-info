@@ -26,6 +26,15 @@ class ResponseFormatter
             return true;
         }
 
+        if (!empty($query['type'])) {
+            if ($query['type'] == 'json') {
+                return true;
+            }
+            if ($query['type'] == 'html') {
+                return false;
+            }
+        }
+
         // Accept header 判斷
         $accept = strtolower($request->getHeaderLine('Accept') ?? '');
         return strpos($accept, 'application/json') !== false;
