@@ -217,16 +217,34 @@ class Mod {
     function getDownloadUrl() : string {
 
         $originFullPath = $this->modFilePath;
-        $relativePath = substr($originFullPath, strlen(realpath($this->getBasePath())) + 1);
+        $basePath = $this->getBasePath();
+        $relativePath = substr($originFullPath, strlen(realpath($basePath)) + 1);
 
         $parts = explode('/', $relativePath);
         $encodedParts = array_map('rawurlencode', $parts); // rawurlencode 對於 URL path 更適合
         $encodedPath = implode('/', $encodedParts);
 
-        $url = rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. $encodedPath;
+        if (!empty($GLOBALS['config']['mods_path'])
+            && $basePath == $GLOBALS['config']['mods_path']) {
 
-        return $url;
-        // return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->getFileName());
+            $url = rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. $encodedPath;
+            return $url;
+            // return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->getFileName());
+        }
+
+        if (!empty($GLOBALS['config']['mods'])
+            && is_array($GLOBALS['config']['mods'])) {
+
+            foreach ($GLOBALS['config']['mods'] as $modGroup) {
+                if($basePath == $modGroup['path']) {
+                    $url = rtrim($GLOBALS['config']['base_url'], '/'). rtrim($modGroup['dl_urlpath'], '/'). '/'. $encodedPath;
+                    return $url;
+                }
+            }
+        }
+
+        return '';
+
     }
 
     function getWebsiteUrl() : string {
