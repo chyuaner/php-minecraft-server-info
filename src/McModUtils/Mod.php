@@ -33,70 +33,61 @@ class Mod {
         return file_exists($this->modFilePath);
     }
 
-    public function parse() : bool {
+    public function parse(): bool {
         $isSuccess = false;
 
-        // 開啟壓縮檔
         $zip = new \ZipArchive();
         if ($zip->open($this->modFilePath) === true) {
 
-            // META-INF/neoforge.mods.toml
+            // NeoForge
             $neoforgeTomlRaw = $zip->getFromName('META-INF/neoforge.mods.toml');
-
             if ($neoforgeTomlRaw !== false) {
                 $parseResult = $this->parseNeoforgeToml($neoforgeTomlRaw);
-
-                if (!empty($parseResult['name'])) {
-                    $this->name = $parseResult['name'];
-                    $isSuccess = true;
-                }
-                if (!empty($parseResult['version'])) {
-                    $this->version = $parseResult['version'];
-                    $isSuccess = true;
-                }
-                if (!empty($parseResult['authors'])) {
-                    $this->authors = $parseResult['authors'];
-                    $isSuccess = true;
-                }
+                $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
             }
 
-            // fabric.mod.json
+            // Forge (舊)
+            $forgeTomlRaw = $zip->getFromName('META-INF/mods.toml');
+            if ($forgeTomlRaw !== false) {
+                // Forge與NeoForge幾乎相同，可沿用同一個解析器
+                $parseResult = $this->parseNeoforgeToml($forgeTomlRaw);
+                $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
+            }
+
+            // Fabric
             $fabricJsonRaw = $zip->getFromName('fabric.mod.json');
             if ($fabricJsonRaw !== false) {
                 $parseResult = $this->parseFabricJson($fabricJsonRaw);
-
-                if (!empty($parseResult['name'])) {
-                    $this->name = $parseResult['name'];
-                    $isSuccess = true;
-                }
-                if (!empty($parseResult['version'])) {
-                    $this->version = $parseResult['version'];
-                    $isSuccess = true;
-                }
-                if (!empty($parseResult['authors'])) {
-                    $this->authors = $parseResult['authors'];
-                    $isSuccess = true;
-                }
+                $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
             }
 
             $zip->close();
         }
 
-        // 若沒有相關資訊，就從檔名拆解處理
+        // fallback: 檔名解析
         if (empty($this->name) || empty($this->version)) {
             $parseResult = $this->parseFilename($this->getFileName());
-
-            if (!empty($parseResult['name'])) {
-                $this->name = $parseResult['name'];
-                $isSuccess = true;
-            }
-            if (!empty($parseResult['version'])) {
-                $this->version = $parseResult['version'];
-                $isSuccess = true;
-            }
+            $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
         }
 
         return $isSuccess;
+    }
+
+    private function applyParseResult(array $parseResult): bool {
+        $changed = false;
+        if (!empty($parseResult['name'])) {
+            $this->name = $parseResult['name'];
+            $changed = true;
+        }
+        if (!empty($parseResult['version'])) {
+            $this->version = $parseResult['version'];
+            $changed = true;
+        }
+        if (!empty($parseResult['authors'])) {
+            $this->authors = $parseResult['authors'];
+            $changed = true;
+        }
+        return $changed;
     }
 
     private function parseFabricJson($raw) : array {
