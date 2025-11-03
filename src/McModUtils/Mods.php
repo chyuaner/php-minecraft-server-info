@@ -66,7 +66,7 @@ final class Mods
 
     public function analyzeModsFolder() {
         // 從設定檔取得mods資料夾路徑
-        $directory = self::modsPath();
+        $directory = $this->getModsPath();
 
         $files = [];
         $hashComponents = [];
@@ -173,7 +173,7 @@ final class Mods
     }
 
     public function zipFolder(string|null $source = null, string $zipPath = self::ZIP_PATH, string|null $comment = null): bool {
-        if (empty($source)) { $source = self::modsPath(); }
+        if (empty($source)) { $source = $this->getModsPath(); }
         if (empty($comment)) { $comment = $this->getHashed(); }
 
         $zip = new ZipArchive();
