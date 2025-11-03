@@ -40,4 +40,6 @@ return [
             'qport' => null,
         ],
     ],
+
+    'debug' => false
 ];
