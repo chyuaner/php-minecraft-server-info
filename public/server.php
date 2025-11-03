@@ -128,7 +128,7 @@ $app->get('/query', function (Request $request, Response $response, array $args)
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
  */
-$app->get('/online_players', function (Request $request, Response $response, array $args) {
+$app->get('/online-players', function (Request $request, Response $response, array $args) {
     $otype = 'all';
     if (!empty($_REQUEST['otype'])) {
         $otype = $_REQUEST['otype'];
