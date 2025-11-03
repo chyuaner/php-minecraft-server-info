@@ -89,7 +89,7 @@ $app->get('/mods', function (Request $request, Response $response, array $args) 
         }
     }
 
-    $modsFileList = $modsUtil->getModNames();
+    $modsFileList = $modsUtil->getModPaths();
 
     $modsOutput = [];
     foreach ($modsFileList as $modFileName) {
