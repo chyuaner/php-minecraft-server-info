@@ -42,7 +42,7 @@ $app->addRoutingMiddleware();
  */
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$app->add(new TrailingSlash(trailingSlash: true)); // true adds the trailing slash (false removes it)
+$app->add(new TrailingSlash(trailingSlash: false)); // true adds the trailing slash (false removes it)
 
 // ============================================================================
 

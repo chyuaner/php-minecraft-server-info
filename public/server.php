@@ -46,12 +46,8 @@ use xPaw\MinecraftQuery;
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
  *
- * @apiExample 使用範例:
- *     https://api-minecraft.yuaner.tw/mods
- *     https://api-minecraft.yuaner.tw/mods/?type=json
- *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
  */
-$app->get('/ping/[{serverId}]', function (Request $request, Response $response, array $args) {
+$app->get('/ping[/{serverId}]', function (Request $request, Response $response, array $args) {
     // 若在網址有指定 /ping/{server}
     $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
     $server = new Server($serverId);
@@ -114,7 +110,7 @@ $app->get('/query/', function (Request $request, Response $response, array $args
  *         "error":"Failed to connect or create a socket: 111 (Connection refused)"
  *     }
  */
-$app->get('/online-players/[{serverId}]', function (Request $request, Response $response, array $args) {
+$app->get('/online-players[/{serverId}]', function (Request $request, Response $response, array $args) {
     $queryParams = $request->getQueryParams();
     $otype = $queryParams['otype'] ?? 'all';
     $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
@@ -170,7 +166,7 @@ $app->get('/online-players/[{serverId}]', function (Request $request, Response $
  *     https://api-minecraft.yuaner.tw/banner/youer1
  *     https://api-minecraft.yuaner.tw/banner/youer1?players=1
  */
-$app->get('/banner/[{serverId}]', function (Request $request, Response $response, array $args) {
+$app->get('/banner[/{serverId}]', function (Request $request, Response $response, array $args) {
     $queryParams = $request->getQueryParams();
     $isShowPlayer = !empty($queryParams['players']) ? true : false;
     $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
