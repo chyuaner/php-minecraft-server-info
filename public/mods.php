@@ -69,33 +69,20 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json&force=1
  */
 
-$app->get('/mods', function (Request $request, Response $response, array $args) {
-    $enableCache = true;
-    $type = 'json';
-    $modFileName = null;
-
+$app->get('/mods[/{filename}]', function (Request $request, Response $response, array $args) {
+    $queryParams = $request->getQueryParams();
     $formatter = new ResponseFormatter();
-    if ($formatter->isJson($request)) {
-        $enableCache = true;
-    }
+    $modFileName = null;
+    $enableCache = $formatter->isJson($request);
 
-    if (!empty($_REQUEST['force'])) {
+
+    if (!empty($queryParams['force'])) {
         $enableCache = false;
     }
 
-    $selectorParamName = 'file';
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
-    $pathFilename = basename($path); // "lalala.jar"
-    if (!empty($_REQUEST[$selectorParamName]) || !in_array($pathFilename, ['mods', ':file', 'index', 'index.php'])) {
-        if (!empty($_REQUEST[$selectorParamName])) {
-            $$selectorParamName = $_REQUEST[$selectorParamName];
-        } else {
-            $$selectorParamName = $pathFilename;
-        }
-
+    if (!empty($args['filename']) && !in_array($args['filename'], [':file', ':filename'])) {
+        $modFileName = $args['filename'];
         $enableCache = false;
-        $modFileName = $$selectorParamName;
     }
 
     // ------------------------------------------------------------------------
