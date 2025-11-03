@@ -53,6 +53,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
  */
 $app->get('/mods', function (Request $request, Response $response, array $args) {
+    $baseModsPath = $GLOBALS['config']['mods']['common']['path'];
     $queryParams = $request->getQueryParams();
     $formatter = new ResponseFormatter();
     $enableCache = $formatter->isJson($request);
@@ -65,6 +66,7 @@ $app->get('/mods', function (Request $request, Response $response, array $args) 
     // ------------------------------------------------------------------------
 
     $modsUtil = new Mods();
+    $modsUtil->setModsPath($baseModsPath);
     $modsUtil->analyzeModsFolder();
     $formatter = new ResponseFormatter();
 
@@ -143,15 +145,12 @@ $app->get('/mods', function (Request $request, Response $response, array $args) 
  */
 
 $app->get('/mods/{filename}', function (Request $request, Response $response, array $args) {
-    $baseModsPath = $GLOBALS['config']['mods_path'];
+    $baseModsPath = $GLOBALS['config']['mods']['common']['path'];
     $formatter = new ResponseFormatter();
     $modFileName = $args['filename'];
     $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
 
     // ------------------------------------------------------------------------
-
-    $modsUtil = new Mods();
-    $modsUtil->analyzeModsFolder();
 
     $mod = new Mod($modFilePath);
     if (!$formatter->isJson($request)) {
@@ -164,9 +163,9 @@ $app->get('/mods/{filename}', function (Request $request, Response $response, ar
         "modHash" => $mod->getSha1(),
         "mod" => $mod->output()
     ];
-    $formatter = new ResponseFormatter();
 
-    // 普通 route
+    // 輸出
+    $formatter = new ResponseFormatter();
     return $formatter->format($request, $output);
 });
 

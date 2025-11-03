@@ -46,7 +46,7 @@ final class Mods
     }
 
     public function setModsPath($path) {
-
+        $this->path = $path;
     }
 
 
