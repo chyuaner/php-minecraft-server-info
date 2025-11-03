@@ -23,6 +23,20 @@ class AppErrorHandler extends ErrorHandler
         return strpos($accept, 'application/json') !== false;
     }
 
+    protected function determineStatusCode(): int
+    {
+        $exception = $this->exception;
+        if ($exception instanceof \xPaw\MinecraftPingException) {
+            return 502;
+        }
+        if ($exception instanceof \xPaw\MinecraftQueryException) {
+            return 502;
+        }
+
+        // 沿用父類別邏輯
+        return parent::determineStatusCode();
+    }
+
     protected function respond(): ResponseInterface
     {
         $request = $this->request;

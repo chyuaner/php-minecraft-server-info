@@ -53,12 +53,6 @@ $app->get('/ping[/{serverId}]', function (Request $request, Response $response, 
     $server = new Server($serverId);
 
     $output = $server->outputPing();
-    // catch( MinecraftPingException $e )
-    // {
-    //     http_response_code(507);
-    //     $output = ['error' => $e->getMessage()];
-    // }
-
     $formatter = new ResponseFormatter();
     return $formatter->format($request, $output);
 });
@@ -71,12 +65,6 @@ $app->get('/query/', function (Request $request, Response $response, array $args
         'info' => $Query->GetInfo(),
         'players' => $Query->GetPlayers(),
     ];
-    // catch( MinecraftQueryException $e )
-    // {
-    //     http_response_code(507);
-    //     $output = ['error' => $e->getMessage()];
-    // }
-
     $formatter = new ResponseFormatter();
     return $formatter->format($request, $output);
 
@@ -127,12 +115,6 @@ $app->get('/online-players[/{serverId}]', function (Request $request, Response $
             $output = $server->getPlayers();
             break;
     }
-    // // catch( MinecraftQueryException $e )
-    // // {
-    // //     http_response_code(507);
-    // //     $output = ['error' => $e->getMessage()];
-    // // }
-
     $formatter = new ResponseFormatter();
     return $formatter->format($request, $output);
 });
@@ -215,7 +197,7 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
     }
     catch( MinecraftPingException $e )
     {
-        http_response_code(507);
+        http_response_code(502);
         $hostString = $server->getPublicHostString();
         $endPing = microtime(true);
         $durationPing = ($endPing - $startPing) * 1000;
