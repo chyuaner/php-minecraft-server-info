@@ -14,7 +14,14 @@ final class Mods
         return $GLOBALS['config']['mods_path'];
     }
 
+    // 這個模組資料夾的資訊
+    private $path;
+    private $zip_path;
+    private $ignorePrefixs = ['hide_'];
+    private $onlyPrefixs = null;
     private $hashed;
+
+    // 每個模組的陣列
     private $modNames;
     private $modPaths;
 
@@ -33,6 +40,29 @@ final class Mods
     //     $this->modNames = $files;
     //     return $files;
     // }
+
+    public function __construct() {
+        $this->path = $GLOBALS['config']['mods_path'];
+    }
+
+    public function setModsPath($path) {
+
+    }
+
+
+    public function setIsIgnoreServerOnly($ignore) {
+
+    }
+
+    public function resetCache() {
+        $this->hashed = null;
+        $this->modNames = null;
+        $this->modPaths = null;
+    }
+
+    protected function getModsPath() {
+        return $this->path;
+    }
 
     public function analyzeModsFolder() {
         // 從設定檔取得mods資料夾路徑

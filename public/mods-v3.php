@@ -35,6 +35,34 @@ use Slim\Routing\RouteCollectorProxy;
 $modTypes = [/*'mods',*/ 'client-mods', 'server-mods', 'all-mods'];
 
 foreach ($modTypes as $modType) {
+
+    switch ($modType) {
+        default:
+        case 'mods':
+            $mode = 'common';
+            // setPath to mods folder
+            // set ignore serveronly_ prefix
+            break;
+        case 'client-mods':
+            $mode = 'client';
+            // setPath to clientmods folder
+            // set ignore serveronly_ prefix
+            break;
+        case 'server-mods':
+            $mode = 'server';
+            // setPath to mods folder
+            // set don't ignore serveronly_ prefix
+            break;
+        case 'all-mods':
+            $mode = 'all';
+            // setPath to mods folder
+            // set don't ignore serveronly_ prefix
+            // setPath to clientmods folder
+            // set don't ignore serveronly_ prefix
+            break;
+    }
+
+
     $app->group("/$modType", function (RouteCollectorProxy $group) {
         $group->get('/zip', function (Request $request, Response $response, array $args) {
             $response->getBody()->write("/zip");
