@@ -87,26 +87,9 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             return $formatter->format($request, $output);
         });
 
-
-        $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey) {
-            $config = $GLOBALS['config']['mods'];
-            $baseModsPath = $config[$modConfigKey]['path'];
-            $modFileName = $args['filename'];
-            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
-
-            $mod = new Mod($modFilePath);
-            $formatter = new ResponseFormatter();
-            return $formatter->format($request, $mod->output());
-        });
-
-        $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey) {
-            $config = $GLOBALS['config']['mods'];
-            $baseModsPath = $config[$modConfigKey]['path'];
-            $modFileName = $args['filename'];
-            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
-
+        // 共用下載邏輯 closure（在 group 內定義一次）
+        $sendDownload = function (Request $request, string $modFilePath) {
             if (!file_exists($modFilePath)) {
-                // Slim 4，交由 Slim 的 404 處理流程
                 throw new \Slim\Exception\HttpNotFoundException($request);
             }
 
@@ -116,6 +99,32 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
 
             readfile($modFilePath);
             exit;
+        };
+
+        $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modFileName = $args['filename'];
+            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
+
+            // 若帶 ?download=1 則走下載流程
+            $queryParams = $request->getQueryParams();
+            if (!empty($queryParams['download']) && (string)$queryParams['download'] === '1') {
+                $sendDownload($request, $modFilePath);
+            }
+
+            $mod = new Mod($modFilePath);
+            $formatter = new ResponseFormatter();
+            return $formatter->format($request, $mod->output());
+        });
+
+        $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modFileName = $args['filename'];
+            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
+
+            $sendDownload($request, $modFilePath);
         });
 
     });
