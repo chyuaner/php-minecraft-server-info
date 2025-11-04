@@ -8,6 +8,8 @@ class Mod {
     protected $name = '';
     protected $version = '';
     protected $authors = [];
+    protected $md5 = '';
+    protected $sha1 = '';
 
     private function parseFileInput(string $raw) : string {
 
@@ -183,12 +185,18 @@ class Mod {
 
     public function getSha1(): string
     {
-        return sha1_file($this->modFilePath);
+        if (empty($this->sha1)) {
+            $this->sha1 = sha1_file($this->modFilePath);
+        }
+        return $this->sha1;
     }
 
     public function getMd5(): string
     {
-        return md5_file($this->modFilePath);
+        if (empty($this->md5)) {
+            $this->md5 = md5_file($this->modFilePath);
+        }
+        return $this->md5;
     }
 
     public function getBasePath() : string {
