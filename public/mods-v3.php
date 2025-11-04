@@ -28,6 +28,7 @@
 use App\ResponseFormatter;
 use McModUtils\Mod;
 use McModUtils\Mods;
+use McModUtils\Zip;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteCollectorProxy;
@@ -40,10 +41,52 @@ $routerConfigMap = [
 
 foreach ($routerConfigMap as $modType => $modConfigKey) {
 
-    $app->group("/$modType", function (RouteCollectorProxy $group) use ($modType, $modConfigKey) {
-        $group->get('/zip', function (Request $request, Response $response, array $args) {
-            $response->getBody()->write("/zip");
-            return $response;
+    $app->group("/$modType", function (RouteCollectorProxy $group) use ($modConfigKey) {
+        $group->get('/zip', function (Request $request, Response $response, array $args) use ($modConfigKey) {
+
+            $zip_path = BASE_PATH.'/public/static/mods-'.$modConfigKey.'.zip';
+            $isForce = $request->getQueryParams()['force'] ?? false;
+
+
+            // 拉出模組清單
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modsUtil = new Mods();
+            $modsUtil->setModsPath($baseModsPath);
+            $modsUtil->setIsIgnoreServerside($config[$modConfigKey]['ignore_serverside_prefix']);
+            $modsUtil->setIsOnlyServerside($config[$modConfigKey]['only_serverside_prefix']);
+            $modsUtil->analyzeModsFolder();
+
+            $zip = new Zip($zip_path);
+
+            $folderHash = $modsUtil->getHashed();
+            $zipedHash = $zip->getZipComment();
+
+            // 若壓縮檔寫在註解內的校驗碼不一致
+            if ($isForce || (!empty($folderHash) && $folderHash !== $zipedHash)) {
+
+                $filePaths = $modsUtil->getModPaths();
+                $zip->zipFolder($baseModsPath, $filePaths, $folderHash);
+            }
+
+            if (!file_exists($zip_path)) {
+                http_response_code(404);
+                echo "ZIP 檔案不存在";
+                return;
+            }
+
+            $zipMTime = (new DateTime())->setTimestamp(filemtime($zip_path));
+            $zipMTime->setTimezone(new DateTimeZone('Asia/Taipei'));
+            $zipFileName = 'BarianMcMods整合包'.$modConfigKey.'-'.$zipMTime->format("Ymd-Hi").'.zip';
+            $encodedFileName = rawurlencode($zipFileName);
+
+            header('Content-Type: application/zip');
+            header("Content-Disposition: attachment; filename=\"$zipFileName\"; filename*=UTF-8''$encodedFileName");
+            header('Content-Length: ' . filesize($zip_path));
+            header('Cache-Control: no-cache, must-revalidate');
+            header('Pragma: no-cache');
+            readfile($zip_path);
+            exit;
         });
 
         $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
