@@ -44,6 +44,20 @@ $routerConfigMap = [
     'server-mods' => 'server',
 ];
 
+// 共用下載邏輯 closure（在 group 內定義一次）
+$sendDownload = function (Request $request, string $modFilePath) {
+    if (!file_exists($modFilePath)) {
+        throw new \Slim\Exception\HttpNotFoundException($request);
+    }
+
+    header('Content-Type: application/java-archive');
+    header('Content-Disposition: attachment; filename="' . basename($modFilePath) . '"');
+    header('Content-Length: ' . filesize($modFilePath));
+
+    readfile($modFilePath);
+    exit;
+};
+
 foreach ($routerConfigMap as $modType => $modConfigKey) {
 
     $app->group("/$modType", function (RouteCollectorProxy $group) use ($modConfigKey) {
@@ -206,20 +220,6 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             return $formatter->format($request, $output);
         });
 
-        // 共用下載邏輯 closure（在 group 內定義一次）
-        $sendDownload = function (Request $request, string $modFilePath) {
-            if (!file_exists($modFilePath)) {
-                throw new \Slim\Exception\HttpNotFoundException($request);
-            }
-
-            header('Content-Type: application/java-archive');
-            header('Content-Disposition: attachment; filename="' . basename($modFilePath) . '"');
-            header('Content-Length: ' . filesize($modFilePath));
-
-            readfile($modFilePath);
-            exit;
-        };
-
         /**
          * @api {get} /:modType/:file 取得單一檔案模組資訊
          * @apiName getmod
@@ -284,4 +284,25 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
     });
 }
 
+// 讓設定在config的dl_urlpath也能直接透過此後端生效（基本上還是要設定Nginx繞過本後端程式，此程式只是提供fallback機制）
+// http://localhost:8000/files/mods/L_Enders_Cataclysm-3.16.jar
+$registeredDlPaths = [];
+foreach ($routerConfigMap as $modType => $modConfigKey) {
+    $dlPath = $GLOBALS['config']['mods'][$modConfigKey]['dl_urlpath'];
+
+    // 若已註冊過相同的 dl_urlpath 就跳過（若要遇到第一個就完全停止註冊，改成 break）
+    if (in_array($dlPath, $registeredDlPaths, true)) {
+        continue;
+    }
+    $registeredDlPaths[] = $dlPath;
+
+    $app->get($dlPath.'{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
+        $config = $GLOBALS['config']['mods'];
+        $baseModsPath = $config[$modConfigKey]['path'];
+        $modFileName = $args['filename'];
+        $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
+
+        $sendDownload($request, $modFilePath);
+    });
+}
 
