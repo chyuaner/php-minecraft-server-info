@@ -60,7 +60,7 @@ $sendDownload = function (Request $request, string $modFilePath) {
 
 foreach ($routerConfigMap as $modType => $modConfigKey) {
 
-    $app->group("/$modType", function (RouteCollectorProxy $group) use ($modConfigKey) {
+    $app->group("/$modType", function (RouteCollectorProxy $group) use ($modConfigKey, $sendDownload) {
 
         /**
          * @api {get} /:modType/zip 下載全部模組包
