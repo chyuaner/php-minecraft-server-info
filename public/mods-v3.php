@@ -40,33 +40,6 @@ $routerConfigMap = [
 
 foreach ($routerConfigMap as $modType => $modConfigKey) {
 
-    switch ($modType) {
-        default:
-        case 'mods':
-            $mode = 'common';
-            // setPath to mods folder
-            // set ignore serveronly_ prefix
-            break;
-        case 'client-mods':
-            $mode = 'client';
-            // setPath to clientmods folder
-            // set ignore serveronly_ prefix
-            break;
-        case 'server-mods':
-            $mode = 'server';
-            // setPath to mods folder
-            // set don't ignore serveronly_ prefix
-            break;
-        case 'all-mods':
-            $mode = 'all';
-            // setPath to mods folder
-            // set don't ignore serveronly_ prefix
-            // setPath to clientmods folder
-            // set don't ignore serveronly_ prefix
-            break;
-    }
-
-
     $app->group("/$modType", function (RouteCollectorProxy $group) use ($modType, $modConfigKey) {
         $group->get('/zip', function (Request $request, Response $response, array $args) {
             $response->getBody()->write("/zip");
@@ -126,9 +99,23 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             return $formatter->format($request, $mod->output());
         });
 
-        $group->get('/{filename}/download', function (Request $request, Response $response, array $args) {
-            $response->getBody()->write("/{filename}/download");
-            return $response;
+        $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey) {
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modFileName = $args['filename'];
+            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
+
+            if (!file_exists($modFilePath)) {
+                // Slim 4，交由 Slim 的 404 處理流程
+                throw new \Slim\Exception\HttpNotFoundException($request);
+            }
+
+            header('Content-Type: application/java-archive');
+            header('Content-Disposition: attachment; filename="' . basename($modFilePath) . '"');
+            header('Content-Length: ' . filesize($modFilePath));
+
+            readfile($modFilePath);
+            exit;
         });
 
     });

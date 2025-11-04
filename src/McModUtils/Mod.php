@@ -210,7 +210,21 @@ class Mod {
         return '';
     }
 
-    function getDownloadUrl() : string {
+    public function getConfigModsKey() : string {
+        $modFilePath = $this->modFilePath;
+
+        if (!empty($GLOBALS['config']['mods'])
+            && is_array($GLOBALS['config']['mods'])) {
+                foreach ($GLOBALS['config']['mods'] as $modConfigKey => $modGroup) {
+                    if (!empty($modGroup['path'] && str_contains($modFilePath, $modGroup['path']))) {
+                        return $modConfigKey;
+                    }
+            }
+        }
+        return '';
+    }
+
+    public function getDownloadUrl() : string {
 
         $originFullPath = $this->modFilePath;
         $basePath = $this->getBasePath();
@@ -228,19 +242,13 @@ class Mod {
             // return rtrim($GLOBALS['config']['base_url'], '/'). '/files/mods/'. urlencode($this->getFileName());
         }
 
-        if (!empty($GLOBALS['config']['mods'])
-            && is_array($GLOBALS['config']['mods'])) {
-
-            foreach ($GLOBALS['config']['mods'] as $modGroup) {
-                if($basePath == $modGroup['path']) {
-                    $url = rtrim($GLOBALS['config']['base_url'], '/'). rtrim($modGroup['dl_urlpath'], '/'). '/'. $encodedPath;
-                    return $url;
-                }
-            }
+        $configKey = $this->getConfigModsKey();
+        if (!empty($GLOBALS['config']['mods'][$configKey])) {
+            $url = rtrim($GLOBALS['config']['base_url'], '/'). rtrim($GLOBALS['config']['mods'][$configKey]['dl_urlpath'], '/'). '/'. $encodedPath;
+            return $url;
         }
 
         return '';
-
     }
 
     function getWebsiteUrl() : string {
