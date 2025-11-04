@@ -186,6 +186,11 @@ class Mod {
         return sha1_file($this->modFilePath);
     }
 
+    public function getMd5(): string
+    {
+        return md5_file($this->modFilePath);
+    }
+
     public function getBasePath() : string {
         $modFilePath = $this->modFilePath;
 

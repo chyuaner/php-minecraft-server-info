@@ -87,23 +87,33 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             $modsFileList = $modsUtil->getModPaths();
 
             $modsOutput = [];
-            foreach ($modsFileList as $modFileName) {
-                $mod = new Mod($modFileName);
-                array_push($modsOutput, $mod->output());
+            if (!empty($queryParams['barian'])) {
+                foreach ($modsFileList as $modFileName) {
+                    $mod = new Mod($modFileName);
+                    $modsOutput[$mod->getFileName()] = $mod->getMd5();
+                }
+                $output = $modsOutput;
             }
+            else {
+                foreach ($modsFileList as $modFileName) {
+                    $mod = new Mod($modFileName);
+                    array_push($modsOutput, $mod->output());
+                }
 
-            $now = new DateTime('now');
-            $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+                $now = new DateTime('now');
+                $now->setTimezone(new DateTimeZone('Asia/Taipei'));
 
-            $output = [
-                "modsHash" => $modsUtil->getHashed(),
-                "updateAt" => $now->format(DateTime::ATOM),
-                "mods" => $modsOutput
-            ];
+                $output = [
+                    "modsHash" => $modsUtil->getHashed(),
+                    "updateAt" => $now->format(DateTime::ATOM),
+                    "mods" => $modsOutput
+                ];
 
+            }
             $formatter = new ResponseFormatter();
             return $formatter->format($request, $output);
         });
+
 
         $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey) {
             $config = $GLOBALS['config']['mods'];
