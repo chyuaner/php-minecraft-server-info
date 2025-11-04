@@ -181,6 +181,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          */
         $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
             $queryParams = $request->getQueryParams();
+            $isForce = !empty($queryParams['force']) && in_array(strtolower($queryParams['force']), ['1', 'true', 'yes'], true);
 
             // 拉出模組清單
             $config = $GLOBALS['config']['mods'];
@@ -190,7 +191,8 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             $modsUtil->setIsIgnoreServerside($config[$modConfigKey]['ignore_serverside_prefix']);
             $modsUtil->setIsOnlyServerside($config[$modConfigKey]['only_serverside_prefix']);
             $modsUtil->analyzeModsFolder();
-            $mods = $modsUtil->getMods();
+            $mods = $modsUtil->getMods(force: $isForce, enableCache: true);
+            $cacheUpdateAt = $modsUtil->getCacheUpdateTime();
 
             if (!empty($queryParams['simple-md5'])) {
                 $modsOutput = [];
@@ -205,12 +207,17 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
                     return $mod->output();
                 }, $mods);
 
-                $now = new DateTime('now');
-                $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+                if ($cacheUpdateAt !== null) {
+                    $cacheUpdateAt->setTimezone(new DateTimeZone('Asia/Taipei'));
+                }
+                else {
+                    $cacheUpdateAt = new DateTime('now');
+                    $cacheUpdateAt->setTimezone(new DateTimeZone('Asia/Taipei'));
+                }
 
                 $output = [
                     "modsHash" => $modsUtil->getHashed(),
-                    "updateAt" => $now->format(DateTime::ATOM),
+                    "updateAt" => $cacheUpdateAt->format(DateTime::ATOM),
                     "mods" => $modsOutput
                 ];
 

@@ -1,13 +1,15 @@
 <?php
 namespace McModUtils;
 
+use DateTime;
+use DateTimeZone;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
-use SplFileInfo;
-use ZipArchive;
 
 final class Mods
 {
+    const CACHE_PATH = BASE_PATH.'/public/static/';
+
     // 這個模組資料夾的資訊
     private $path;
     private $ignorePrefixs = ['hide_'];
@@ -126,6 +128,15 @@ final class Mods
         $this->modsPathNameMap = $modsPathNameMap;
     }
 
+    public function getMetaHashed() : string {
+        $hPath = md5(serialize($this->path));
+        $hIgnorePrefixs = md5(serialize($this->ignorePrefixs));
+        $hOnlyPrefixs = md5(serialize($this->onlyPrefixs));
+
+        $hashed = md5($hPath . '|' . $hIgnorePrefixs . '|' . $hOnlyPrefixs);
+        return $hashed;
+    }
+
     public function getHashed() : string {
         if (!isset($this->hashed)) {
             $this->analyzeModsFolder();
@@ -147,15 +158,63 @@ final class Mods
         return array_keys($this->modsPathNameMap);
     }
 
-    public function getMods() {
-        // $this->analyzeModsFolder();
+    public function getMods($force = false, $enableCache = true) : array {
+        if ($enableCache) {
+            $cacheFilePath = self::CACHE_PATH.'/mods-'.$this->getMetaHashed().'.json';
+            $thisHashed = $this->getHashed();
+
+            if (file_exists($cacheFilePath) && !$force) {
+
+                // 檢查該資料夾有無被變動過
+                $currentHash = $thisHashed;
+                $cache = json_decode(file_get_contents($cacheFilePath), true);
+                if ($cache['folder_hashed'] == $currentHash) {
+                    // 讀取快取內容
+                    $mods = unserialize($cache['mods']);
+                    return $mods;
+                }
+            }
+        }
+
+        // 正常抓取內容
         $modsFileList = $this->getModPaths();
         $mods = [];
         foreach ($modsFileList as $modFileName) {
             $mod = new Mod($modFileName);
+            if ($enableCache) {
+                $mod->parse();
+                $mod->getMd5();
+                $mod->getSha1();
+            }
             $mods[] = $mod;
         }
+
+        // 儲存進快取
+        if ($enableCache) {
+            $now = new DateTime('now');
+            $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+            $cacheOutput = [
+                'folder_hashed' => $thisHashed,
+                'update_at' => $now->format(DateTime::ATOM),
+                'mods' => serialize($mods)
+            ];
+            $cacheOutputRaw = json_encode($cacheOutput);
+            file_put_contents($cacheFilePath, $cacheOutputRaw);
+        }
         return $mods;
+    }
+
+    public function getCacheUpdateTime() : ?DateTime {
+        $cacheFilePath = self::CACHE_PATH.'/mods-'.$this->getMetaHashed().'.json';
+        if (file_exists($cacheFilePath)) {
+            $cacheRaw = file_get_contents($cacheFilePath);
+            $cache = json_decode($cacheRaw, true);
+            if (!empty($cache['update_at'])) {
+                $dt = new DateTime($cache['update_at']);
+                return $dt;
+            }
+        }
+        return null;
     }
 
     public static function hash() : string {
