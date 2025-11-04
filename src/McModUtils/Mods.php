@@ -22,8 +22,7 @@ final class Mods
     private $hashed;
 
     // 每個模組的陣列
-    private $modNames;
-    private $modPaths;
+    private $modsPathNameMap = [];
 
     // public function doModNames() : array {
     //     // 從設定檔取得mods資料夾路徑
@@ -42,22 +41,41 @@ final class Mods
     // }
 
     public function __construct() {
-        $this->path = $GLOBALS['config']['mods_path'];
+        if (!empty($GLOBALS['config']['mods_path'])) {
+            $this->path = $GLOBALS['config']['mods_path'];
+        }
+        elseif (!empty($GLOBALS['config']['mods']['common']['path'])) {
+            $this->path = $GLOBALS['config']['mods']['common']['path'];
+        }
     }
 
     public function setModsPath($path) {
         $this->path = $path;
+        $this->resetCache();
     }
 
+    public function setIsIgnoreServerside($bool) {
+        if ($bool) {
+            $this->ignorePrefixs = array_values(array_unique(array_merge($this->ignorePrefixs, $GLOBALS['config']['serverside_prefixs'])));
+        } else {
+            $this->ignorePrefixs = array_diff(array_unique(array_merge($this->ignorePrefixs, $GLOBALS['config']['serverside_prefixs'])));
+        }
+        $this->resetCache();
+    }
 
-    public function setIsIgnoreServerOnly($ignore) {
+    public function setIsOnlyServerside($bool) {
+        if ($bool) {
+            $this->onlyPrefixs = $GLOBALS['config']['serverside_prefixs'];
+        } else {
+            $this->onlyPrefixs = null;
+        }
 
+        $this->resetCache();
     }
 
     public function resetCache() {
         $this->hashed = null;
-        $this->modNames = null;
-        $this->modPaths = null;
+        $this->modsPathNameMap = [];
     }
 
     protected function getModsPath() {
@@ -68,7 +86,7 @@ final class Mods
         // 從設定檔取得mods資料夾路徑
         $directory = $this->getModsPath();
 
-        $files = [];
+        $modsPathNameMap = [];
         $hashComponents = [];
 
         $ignoredDirs = ['.connector', '.index', '.git', 'logs', 'cache'];
@@ -83,8 +101,33 @@ final class Mods
                 }
             }
 
-            $isProcressFilename = !str_starts_with($file->getFilename(), 'hide_') && str_ends_with($file->getFilename(), '.jar')
-                                  || str_ends_with($file->getFilename(), '.jar.client');
+            $theFilename = $file->getFilename();
+            $isProcressFilename = false;
+            // 檔案副檔名必須是.jar
+            if (str_ends_with($theFilename, '.jar') || str_ends_with($theFilename, '.jar.client')) {
+                $onlyPrefixs = $this->onlyPrefixs;
+                $isProcressFilename = false;
+                if (!empty($onlyPrefixs) && is_array($onlyPrefixs)) {
+                    foreach ($onlyPrefixs as $theOPrefix) {
+                        if (str_starts_with($theFilename, $theOPrefix)) {
+                            $isProcressFilename = true;
+                            break;
+                        }
+                    }
+                } else {
+                    $ignorePrefixs = $this->ignorePrefixs;
+                    $isProcressFilename = true;
+                    foreach ($ignorePrefixs as $theIPrefix) {
+                        if (str_starts_with($theFilename, $theIPrefix)) {
+                            $isProcressFilename = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                $isProcressFilename = false;
+            }
 
             if ($file->isFile() && $isProcressFilename) {
                 $relativePath = substr($file->getPathname(), strlen($directory));
@@ -92,21 +135,18 @@ final class Mods
                 $size = $file->getSize();
 
                 $basePath = realpath($directory); // 確保是絕對路徑
-                $files[] = substr($file->getPathname(), strlen($basePath) + 1);
-                // $files[] = basename($file->getPathname()); // 存檔名
-                $paths[] = $file->getPathname(); // 存檔名
+                $modsPathNameMap[$file->getPathname()] = substr($file->getPathname(), strlen($basePath) + 1);
+
                 $hashComponents[] = $relativePath . '|' . $mtime . '|' . $size;
             }
         }
 
         sort($hashComponents);
-        sort($files);
 
         $hash = hash('sha256', implode("\n", $hashComponents));
 
         $this->hashed = $hash;
-        $this->modNames = $files;
-        $this->modPaths = $paths;
+        $this->modsPathNameMap = $modsPathNameMap;
     }
 
     public function getHashed() : string {
@@ -120,14 +160,14 @@ final class Mods
         if (!isset($this->modNames)) {
             $this->analyzeModsFolder();
         }
-        return $this->modNames;
+        return array_values($this->modsPathNameMap);
     }
 
     public function getModPaths() : array {
         if (!isset($this->modNames)) {
             $this->analyzeModsFolder();
         }
-        return $this->modPaths;
+        return array_keys($this->modsPathNameMap);
     }
 
     public static function hash() : string {
