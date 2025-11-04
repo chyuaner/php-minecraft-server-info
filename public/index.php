@@ -2,7 +2,7 @@
 
 /**
  * @apiDefine McServers
- * @apiParam {String="youer1","youer2"} [server] 選填，伺服器名稱，例如 `youer1`。未填則使用預設伺服器。
+ * @apiParam {String="forge1","auth2"} [server] 選填，伺服器名稱，例如 `forge1`。未填則使用預設伺服器。
  */
 
 use App\AppErrorHandler;
@@ -61,29 +61,9 @@ require __DIR__ . '/mods-v3.php';
 require __DIR__ . '/server.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
-    // $formatter = new ResponseFormatter();
-    // if ($formatter->isJson($request)) {
-    //     $uri = $request->getUri()->withPath('/mods');
-    //     $newRequest = $request->withUri($uri);
-
-    //     // 重新丟給 Slim 執行
-    //     return $app->handle($newRequest);
-    // }
-
     $renderer = new PhpRenderer(__DIR__ . '/../src/templates');
-
     return $renderer->render($response, 'index.php');
 });
-
-$app->get('/hello', function ($request, $response) {
-    $data = ['message' => 'Hello world!'];
-
-    $formatter = new ResponseFormatter();
-
-    // 普通 route
-    return $formatter->format($request, $data);
-});
-
 
 $app->get('/favicon.ico', function (Request $request, Response $response, $args) {
     return $response->withStatus(204); // No Content
