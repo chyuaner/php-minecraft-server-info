@@ -147,6 +147,17 @@ final class Mods
         return array_keys($this->modsPathNameMap);
     }
 
+    public function getMods() {
+        // $this->analyzeModsFolder();
+        $modsFileList = $this->getModPaths();
+        $mods = [];
+        foreach ($modsFileList as $modFileName) {
+            $mod = new Mod($modFileName);
+            $mods[] = $mod;
+        }
+        return $mods;
+    }
+
     public static function hash() : string {
         $obj = new self();
         return $obj->getHashed();

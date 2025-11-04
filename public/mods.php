@@ -190,21 +190,20 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             $modsUtil->setIsIgnoreServerside($config[$modConfigKey]['ignore_serverside_prefix']);
             $modsUtil->setIsOnlyServerside($config[$modConfigKey]['only_serverside_prefix']);
             $modsUtil->analyzeModsFolder();
-            $modsFileList = $modsUtil->getModPaths();
+            $mods = $modsUtil->getMods();
 
-            $modsOutput = [];
-            if (!empty($queryParams['barian'])) {
-                foreach ($modsFileList as $modFileName) {
-                    $mod = new Mod($modFileName);
+            if (!empty($queryParams['simple-md5'])) {
+                $modsOutput = [];
+                foreach ($mods as $mod) {
                     $modsOutput[$mod->getFileName()] = $mod->getMd5();
                 }
+
                 $output = $modsOutput;
             }
             else {
-                foreach ($modsFileList as $modFileName) {
-                    $mod = new Mod($modFileName);
-                    array_push($modsOutput, $mod->output());
-                }
+                $modsOutput = array_map(function ($mod) {
+                    return $mod->output();
+                }, $mods);
 
                 $now = new DateTime('now');
                 $now->setTimezone(new DateTimeZone('Asia/Taipei'));
