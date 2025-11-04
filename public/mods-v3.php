@@ -32,9 +32,13 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteCollectorProxy;
 
-$modTypes = [/*'mods',*/ 'client-mods', 'server-mods', 'all-mods'];
+$routerConfigMap = [
+    'mods' => 'common',
+    'client-mods' => 'client',
+    'server-mods' => 'server',
+];
 
-foreach ($modTypes as $modType) {
+foreach ($routerConfigMap as $modType => $modConfigKey) {
 
     switch ($modType) {
         default:
@@ -63,20 +67,53 @@ foreach ($modTypes as $modType) {
     }
 
 
-    $app->group("/$modType", function (RouteCollectorProxy $group) {
+    $app->group("/$modType", function (RouteCollectorProxy $group) use ($modType, $modConfigKey) {
         $group->get('/zip', function (Request $request, Response $response, array $args) {
             $response->getBody()->write("/zip");
             return $response;
         });
 
-        $group->get('', function (Request $request, Response $response, array $args) {
-            $response->getBody()->write("/");
-            return $response;
+        $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
+            $queryParams = $request->getQueryParams();
+
+            // 拉出模組清單
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modsUtil = new Mods();
+            $modsUtil->setModsPath($baseModsPath);
+            $modsUtil->setIsIgnoreServerside($config[$modConfigKey]['ignore_serverside_prefix']);
+            $modsUtil->setIsOnlyServerside($config[$modConfigKey]['only_serverside_prefix']);
+            $modsUtil->analyzeModsFolder();
+            $modsFileList = $modsUtil->getModPaths();
+
+            $modsOutput = [];
+            foreach ($modsFileList as $modFileName) {
+                $mod = new Mod($modFileName);
+                array_push($modsOutput, $mod->output());
+            }
+
+            $now = new DateTime('now');
+            $now->setTimezone(new DateTimeZone('Asia/Taipei'));
+
+            $output = [
+                "modsHash" => $modsUtil->getHashed(),
+                "updateAt" => $now->format(DateTime::ATOM),
+                "mods" => $modsOutput
+            ];
+
+            $formatter = new ResponseFormatter();
+            return $formatter->format($request, $output);
         });
 
-        $group->get('/{filename}', function (Request $request, Response $response, array $args) {
-            $response->getBody()->write("/{filename}");
-            return $response;
+        $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey) {
+            $config = $GLOBALS['config']['mods'];
+            $baseModsPath = $config[$modConfigKey]['path'];
+            $modFileName = $args['filename'];
+            $modFilePath = join(DIRECTORY_SEPARATOR, [rtrim($baseModsPath, '/'), $modFileName]);
+
+            $mod = new Mod($modFilePath);
+            $formatter = new ResponseFormatter();
+            return $formatter->format($request, $mod->output());
         });
 
         $group->get('/{filename}/download', function (Request $request, Response $response, array $args) {
