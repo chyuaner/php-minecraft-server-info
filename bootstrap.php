@@ -1,6 +1,8 @@
 <?php
 // 定義根目錄常數
-define('BASE_PATH', __DIR__);
+if (!defined('BASE_PATH')) {
+    define('BASE_PATH', __DIR__);
+}
 
 // Autoload PSR-4
 require BASE_PATH . '/vendor/autoload.php';
