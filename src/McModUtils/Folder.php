@@ -236,10 +236,33 @@ class Folder
         return false;
     }
 
+    protected function getDownloadSubPath() : string {
+        if (!empty($GLOBALS['config']['other_folders'][$this->basePath])) {
+            return trim($GLOBALS['config']['other_folders'][$this->basePath], '/\\');
+        }
+        return '';
+    }
+
     private function fetchFile(SplFileInfo $file, $fetchMeta = false, $fetchMd5 = false, $fetchSha1 = false) {
-        $thePath = $file->getPathname();
+        $theRawPath = $file->getPathname();
+
+        // 將絕對路徑轉為相對於 $this->basePath 的相對路徑（若不在 basePath 之下則回傳去頭的路徑）
+        $base = rtrim($this->basePath, '/\\');
+        if ($base !== '' && strpos($theRawPath, $base) === 0) {
+            $theSubPath = ltrim(substr($theRawPath, strlen($base)), '/\\');
+        } else {
+            // fallback：移除左側斜線，保留相對形式
+            $theSubPath = ltrim($theRawPath, '/\\');
+        }
+
+        $thePath = basename($this->basePath).'/'.$theSubPath;
+        $downloadUrl = $GLOBALS['config']['base_url'].'/'.$this->getDownloadSubPath().'/'.$theSubPath;
         $fileInfo = [
-            'filename' => basename($thePath),
+            'filename' => basename($theRawPath),
+            'fileName' => basename($theRawPath),
+            'path' => $thePath,
+            'download' => $downloadUrl,
+            'downloadUrl' => $downloadUrl,
         ];
 
         if ($fetchMeta) {
@@ -248,11 +271,11 @@ class Folder
         }
 
         if ($fetchMd5) {
-            $fileInfo['md5'] = md5_file($thePath);
+            $fileInfo['md5'] = md5_file($theRawPath);
         }
 
         if ($fetchSha1) {
-            $fileInfo['sha1'] = sha1_file($thePath);
+            $fileInfo['sha1'] = sha1_file($theRawPath);
         }
 
         return $fileInfo;
