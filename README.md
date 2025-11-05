@@ -14,10 +14,26 @@
     * PHP 8.4.7 (cli) (built: May  6 2025 14:43:39) (NTS)
 * Debian GNU/Linux 12 (bookworm) x86_64
     * PHP 8.2.28 (cli) (built: Mar 13 2025 18:21:38) (NTS)
+* Debian GNU/Linux 13 (trixie) x86_64
+    * PHP 8.4.11 (cli) (built: Aug  3 2025 07:32:21) (NTS)
 
 ### 需要依賴的PHP extensions
 * php-zip
 * php-gd
+
+### 需要調整的PHP設定
+
+* /etc/php/php.ini (Manjaro)
+* /etc/php/8.4/fpm/php.ini
+
+```
+extension=gd # 註解解掉，要啟用此功能
+extension=zip # 註解解掉，要啟用此功能
+max_execution_time = 90 # 允許的執行時間加大
+memory_limit = 2048M # 允許的記憶體加大
+```
+
+sudo systemctl reload php8.4-fpm.service
 
 ## 建置&啟動開發伺服器
 ```
@@ -41,13 +57,120 @@ php -S 127.0.0.1:8000 -t public
 ### Nginx設定
 
 
-### apidoc
-伺服器需要安裝
+
+## Debian 13 上線佈署說明
 ```
-apt install nodejs npm
-sudo chown -R 33:33 "/var/www/.npm"
+sudo apt install php composer php-zip php-gd nodejs npm
+cd /opt/minecraft/
+git clone <url>
+cd php-minecraft-mods-info
+composer install
+npm install
+cp config.default.php config.php
+vim config.php # 根據需求修改
+
+sudo gpasswd -a www-data minecraft
+sudo chgrp minecraft -R /opt/minecraft/php-minecraft-mods-info
+sudo chmod g+s -R /opt/minecraft/php-minecraft-mods-info
+sudo systemctl restart php8.4-fpm.service 
 ```
 
+## Webhook自動更新
+* sudo apt install webhook
+* sudo vim /etc/systemd/system/webhook.service
+    ```
+    [Unit]
+    Description=Webhook server
+
+    [Service]
+    Type=exec
+    ExecStart=webhook -hooks /etc/webhook/hooks.json -verbose
+
+    # Which user should the webhooks run as?
+    User=www-data
+    Group=www-data
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+* sudo systemctl daemon-reload
+* sudo mkdir /var/www/.npm
+* sudo chown -R 33:33 "/var/www/.npm"
+* sudo mkdir /etc/webhook
+
+* sudo vim /etc/webhook/hooks.json
+    ```
+    [
+    {
+        "id": "php-minecraft-server-info",
+        "execute-command": "/opt/minecraft/webhook/deploy-php-minecraft-server-info.sh",
+        "command-working-directory": "/opt/minecraft/php-minecraft-server-info"
+    }
+    ]
+    ```
+
+* vim /opt/minecraft/webhook/deploy-php-minecraft-server-info.sh
+    ```
+    #!/bin/bash
+
+    set -e
+    cd /opt/minecraft/php-minecraft-server-info
+
+    echo "▶ [DEPLOY] Starting deploy at $(date)"
+
+    # 拉取最新程式碼
+    export GIT_SSH_COMMAND="ssh -i /opt/minecraft/ssh/id_ed25519 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
+    git pull origin master
+
+    # 如有 Composer
+    composer install --no-dev --optimize-autoloader
+
+    # 權限設定（可選）
+    #chown -R www-data:www-data .
+
+    npm install
+
+    # apidoc產出
+    npm run doc
+
+    echo "✅ [DEPLOY] Done at $(date)"
+    ```
+
+* vim /opt/minecraft/webhook/deploy-php-minecraft-server-info.sh
+* sudo systemctl start webhook
+* sudo systemctl enable webhook
+* sudo journalctl -u webhook.service -f
+
+## 效能測試
+
+### 有無經過PHP後端下載單檔所花費的時間
+
+雖然本專案有規劃下載檔案本體的功能，但是還是有規劃不經由本後端程式直連下載的方式。
+而本專案也有設計Fallback機制，當Nginx直連設定失效回來跑到PHP這邊時，仍然可以正常提供檔案本體下載，但是效能會有落差。
+
+以下是針對 OpenLoader-Forge-1.20.1-19.0.4.jar 檔案測試的伺服器回應花費時間測試
+
+#### 經過PHP下載單檔花費時間
+以 https://mc-api.yuaner.tw/mods/OpenLoader-Forge-1.20.1-19.0.4.jar/download 進行下載
+
+PS. 此網址結構是為了對齊 /mods 網址結構，並兼顧舊型客戶端相容使用，始終都會經過此PHP後端執行
+
+* 481 ms
+* 463 ms
+* 482 ms
+* 480 ms
+
+#### Nginx直連單檔下載花費時間
+以 https://mc-api.yuaner.tw/files/mods/OpenLoader-Forge-1.20.1-19.0.4.jar  ，由Nginx直連進行下載。
+
+PS. Nginx那邊需要額外設定，若沒有外正確設定導致Fallback銜接回此PHP後端，本後端仍然有提供這個Router路由可以正常提供下載，但就會回到上述提及有損耗過的效能。
+
+* 277 ms
+* 186 ms
+* 189 ms
+* 191 ms
 
 ## 參考資料
 ### API JSON Output
