@@ -2,6 +2,7 @@
 
 use App\ResponseFormatter;
 use McModUtils\Folder;
+use McModUtils\Zip;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteCollectorProxy;
@@ -21,25 +22,12 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
         }
         $filesOutput = array_values($fileInfos);
 
-
-        // print_r($fileInfos);exit;
         $formatter = new ResponseFormatter();
         return $formatter->format($request, $filesOutput);
     });
 
-
-    $group->get('/zip', function (Request $request, Response $response, array $args) {
-        $response->getBody()->write("Files root path. Please specify a file or folder to download.");
-        return $response->withHeader('Content-Type', 'text/plain');
-    });
-
-
-    // 指定的Folder
-    $group->get('/{folder}', function (Request $request, Response $response, array $args) {
-        $isForce = $request->getQueryParams()['force'] ?? false;
-
-        // 取得使用者傳入的 folder 並標準化（移除前後斜線）
-        $raw = $args['folder'] ?? '';
+    function getRawPath($urlPathRequest) {
+        $raw = $urlPathRequest;
         $requested = trim($raw, '/');
 
         // 如果開頭有 "files/"（或 "/files/"），移除它
@@ -59,6 +47,81 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
                 break;
             }
         }
+        return $foundPath;
+    }
+
+    $group->get('/zip', function (Request $request, Response $response, array $args) {
+        $requested = trim('/files/config/', '/');
+
+        $isForce = $request->getQueryParams()['force'] ?? false;
+        $directorys = array_keys($GLOBALS['config']['other_folders']);
+        $urlSubPaths = array_map(function($value) {
+            $norm = trim($value, '/');
+            if (strpos($norm, 'files/') === 0) {
+                $norm = substr($norm, strlen('files/'));
+            }
+            return $norm;
+        }, $GLOBALS['config']['other_folders']);
+
+        $folderContentHasheds = [];
+        $folderConfigKeyHasheds = [];
+        $addFiles = [];
+        foreach ($directorys as $directory) {
+            $mAddFiles = [];
+            $folder = new Folder($directory);
+            $folderName = basename($directory);
+            $folder->fetchFilesRecursively();
+            $fileInfos = $folder->getFileInfos();
+            $mAddFiles = array_map(function($fileInfo) use ($folderName) {
+                return $fileInfo['path'];
+            }, $fileInfos);
+            $addFiles += $mAddFiles;
+
+            $folderConfigKeyHasheds[] = $folder->getMetaHashed();
+            $folderContentHasheds[] = $folder->getHashed();
+        }
+
+        // 合併所有 folder hashed 並做 md5
+        $combinedConfigKey = implode('|', $folderConfigKeyHasheds);
+        $folderConfigKeyHashed = md5($combinedConfigKey);
+        $combined = implode('|', $folderContentHasheds);
+        $folderContentHashed = md5($combined);
+        $zip_path = BASE_PATH.'/public/static/folder-'.$folderConfigKeyHashed.'.zip';
+
+        $zip = new Zip($zip_path);
+        $zipedHash = $zip->getZipComment();
+
+        // 若壓縮檔寫在註解內的校驗碼不一致
+        if ($isForce || (!empty($folderContentHashed) && $folderContentHashed !== $zipedHash)) {
+            $zip->zipRelativePath($addFiles, $folderContentHashed);
+        }
+        if (!file_exists($zip_path)) {
+            http_response_code(404);
+            echo "ZIP 檔案不存在";
+            return;
+        }
+
+        $zipMTime = (new DateTime())->setTimestamp(filemtime($zip_path));
+        $zipMTime->setTimezone(new DateTimeZone('Asia/Taipei'));
+        $zipFileName = 'BarianMcMods整合包(other-all)-'.$zipMTime->format("Ymd-Hi").'.zip';
+        $encodedFileName = rawurlencode($zipFileName);
+
+        header('Content-Type: application/zip');
+        header("Content-Disposition: attachment; filename=\"$zipFileName\"; filename*=UTF-8''$encodedFileName");
+        header('Content-Length: ' . filesize($zip_path));
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Served-By: PHP');
+        readfile($zip_path);
+    });
+
+    // 指定的Folder
+    $group->get('/{folder}', function (Request $request, Response $response, array $args) {
+        $isForce = $request->getQueryParams()['force'] ?? false;
+
+        // 取得使用者傳入的 folder 並標準化（移除前後斜線）
+        $raw = $args['folder'] ?? '';
+        $foundPath = getRawPath($raw);
 
         if ($foundPath === null) {
             // 找不到對應項，回傳 404
@@ -81,11 +144,51 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
 
 
     $group->get('/{folder}/zip', function (Request $request, Response $response, array $args) {
-        $response->getBody()->write("Files root path. Please specify a file or folder to download.");
-        return $response->withHeader('Content-Type', 'text/plain');
+        $isForce = $request->getQueryParams()['force'] ?? false;
+
+        // 取得使用者傳入的 folder 並標準化（移除前後斜線）
+        $raw = $args['folder'] ?? '';
+        $foundPath = getRawPath($raw);
+        if ($foundPath === null) {
+            // 找不到對應項，回傳 404
+            throw new \Slim\Exception\HttpNotFoundException($request);
+        }
+
+        $folder = new Folder($foundPath);
+        $baseModsPath = $foundPath;
+        $folderConfigKey = $folder->getMetaHashed();
+
+        $zip_path = BASE_PATH.'/public/static/folder-'.$folderConfigKey.'.zip';
+
+        $zip = new Zip($zip_path);
+        $folderHash = $folder->getHashed();
+        $zipedHash = $zip->getZipComment();
+
+        // 若壓縮檔寫在註解內的校驗碼不一致
+        if ($isForce || (!empty($folderHash) && $folderHash !== $zipedHash)) {
+            $filePaths = $folder->getFilePaths();
+            $zip->zipFolder($baseModsPath.'/..', $filePaths, $folderHash);
+        }
+        if (!file_exists($zip_path)) {
+            http_response_code(404);
+            echo "ZIP 檔案不存在";
+            return;
+        }
+
+        $zipMTime = (new DateTime())->setTimestamp(filemtime($zip_path));
+        $zipMTime->setTimezone(new DateTimeZone('Asia/Taipei'));
+        $zipFileName = 'BarianMcMods整合包('.$raw.')-'.$zipMTime->format("Ymd-Hi").'.zip';
+        $encodedFileName = rawurlencode($zipFileName);
+
+        header('Content-Type: application/zip');
+        header("Content-Disposition: attachment; filename=\"$zipFileName\"; filename*=UTF-8''$encodedFileName");
+        header('Content-Length: ' . filesize($zip_path));
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('X-Served-By: PHP');
+        readfile($zip_path);
+        exit;
     });
-
-
 });
 
 

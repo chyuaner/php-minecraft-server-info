@@ -51,7 +51,10 @@ class Folder
         return $hashed;
     }
 
-    protected function getHashed() : ?string {
+    public function getHashed() : ?string {
+        if (empty($this->hashed)) {
+            $this->fetchFilesRecursively();
+        }
         return $this->hashed;
     }
 
@@ -247,6 +250,11 @@ class Folder
             return true;
         }
 
+        if (empty($this->files) && empty($this->fileInfos)) {
+            $this->fetchFilesRecursively();
+            return true;
+        }
+
         return false;
     }
 
@@ -297,5 +305,10 @@ class Folder
 
     public function getFileInfos() {
         return $this->fileInfos;
+    }
+
+    public function getFilePaths() {
+        $this->check();
+        return array_keys($this->fileInfos);
     }
 }
