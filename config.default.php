@@ -28,14 +28,14 @@ return [
         ]
     ],
 
-    'sync_folders' => [
-        $baseMinecraftPath.'/config',
-        $baseMinecraftPath.'/defaultconfigs',
-        $baseMinecraftPath.'/kubejs',
-        $baseMinecraftPath.'/modernfix',
-        $baseMinecraftPath.'/resourcepacks',
-        $baseMinecraftPath.'/tacz',
-        $baseMinecraftPath.'/tlm_custom_pack',
+    'other_folders' => [
+        $baseMinecraftPath.'/config' => '/files/config/',
+        $baseMinecraftPath.'/defaultconfigs' => '/files/defaultconfigs/',
+        $baseMinecraftPath.'/kubejs' => '/files/kubejs/',
+        $baseMinecraftPath.'/modernfix' => '/files/modernfix/',
+        $baseMinecraftPath.'/resourcepacks' => '/files/resourcepacks/',
+        $baseMinecraftPath.'/tacz' => '/files/tacz/',
+        $baseMinecraftPath.'/tlm_custom_pack' => '/files/tlm_custom_pack/',
     ],
 
     // 主要伺服器進入點（若有用到Velocity做為群組伺服器(代理伺服器)，這部份填代理伺服器主要進入點）
