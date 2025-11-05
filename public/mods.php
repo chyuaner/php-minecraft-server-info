@@ -53,6 +53,7 @@ $sendDownload = function (Request $request, string $modFilePath) {
     header('Content-Type: application/java-archive');
     header('Content-Disposition: attachment; filename="' . basename($modFilePath) . '"');
     header('Content-Length: ' . filesize($modFilePath));
+    header('X-Served-By: PHP');
 
     readfile($modFilePath);
     exit;
@@ -127,6 +128,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             header('Content-Length: ' . filesize($zip_path));
             header('Cache-Control: no-cache, must-revalidate');
             header('Pragma: no-cache');
+            header('X-Served-By: PHP');
             readfile($zip_path);
             exit;
         });
