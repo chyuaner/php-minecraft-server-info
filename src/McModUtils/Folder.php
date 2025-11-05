@@ -11,6 +11,7 @@ class Folder
 {
     const CACHE_PATH = BASE_PATH.'/public/static/';
     private $basePath;
+    private $hashed;
 
     /**
      * 存取實際檔案用
@@ -50,6 +51,10 @@ class Folder
         return $hashed;
     }
 
+    protected function getHashed() : ?string {
+        return $this->hashed;
+    }
+
     private function getCacheFilePath(): string {
         return self::CACHE_PATH.'/folder-'.$this->getMetaHashed().'.json';
     }
@@ -73,6 +78,7 @@ class Folder
             if (!empty($data['fileInfos'])) {
                 // 套用快取內容
                 $this->fileInfos = $data['fileInfos'];
+                $this->hashed = $data['folder_hashed'] ?? null;
                 $this->check();
                 return true;
             }
@@ -97,11 +103,12 @@ class Folder
      * @param bool $enableCache 掃描完成後是否寫回快取檔
      * @return array $this->files
      */
-    public function fetchFilesRecursively($fetchMeta = true, $fetchMd5 = false, $fetchSha1 = false, $force = false, $enableCache = true) {
+    public function fetchFilesRecursively($fetchMd5 = false, $fetchSha1 = false, $force = false, $enableCache = true) {
         // 嘗試從快取讀取
         if ($enableCache && !$force) {
             $this->loadCache();
         }
+        $fetchMeta = true;
 
         $directory = $this->basePath;
 
@@ -110,6 +117,7 @@ class Folder
         );
 
         $scanned = [];
+        $hashComponents = [];
 
         foreach ($iterator as $file) {
             if (!$file->isFile()) continue;
@@ -121,8 +129,9 @@ class Folder
             $this->files[$path] = $file;
 
             // 先取得目前 meta（若需要），避免多次 stat
-            $currMtime = $fetchMeta ? $file->getMTime() : null;
-            $currSize  = $fetchMeta ? $file->getSize() : null;
+            $currMtime = $file->getMTime();
+            $currSize  = $file->getSize();
+            $hashComponents[] = $path . '|' . $currMtime . '|' . $currSize;
 
             $needRefresh = $force || !isset($this->fileInfos[$path]);
 
@@ -166,6 +175,10 @@ class Folder
             $this->fileInfos[$path] = $this->fetchFile($file, fetchMeta:$fetchMeta, fetchMd5:$fetchMd5, fetchSha1:$fetchSha1);
         }
 
+        $hash = hash('sha256', implode("\n", $hashComponents));
+        $this->hashed = $hash;
+
+
         // 移除已刪除（掃描不到）的快取項目
         $removed = array_diff_key($this->fileInfos, $scanned);
         if (!empty($removed)) {
@@ -198,6 +211,7 @@ class Folder
             $now->setTimezone(new DateTimeZone('Asia/Taipei'));
             $data = [
                 'basePath' => $this->basePath,
+                'folder_hashed' => $this->getHashed(),
                 'update_at' => $now->format(DateTime::ATOM),
                 'fileInfos' => $this->fileInfos
             ];
