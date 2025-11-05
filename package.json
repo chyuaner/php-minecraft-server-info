@@ -22,8 +22,8 @@
     "apidoc": "github:chyuaner/apidoc"
   },
   "apidoc": {
-    "url": "https://api-minecraft.yuaner.tw",
-    "sampleUrl": "https://api-minecraft.yuaner.tw",
+    "url": "https://mc-api.yuaner.tw",
+    "sampleUrl": "https://mc-api.yuaner.tw",
     "order": [
       "getAllMods",
       "getmod",
