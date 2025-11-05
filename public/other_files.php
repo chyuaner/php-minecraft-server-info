@@ -19,10 +19,12 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
             // $folder->fetchFilesRecursively(fetchMd5: false, fetchSha1:  false, force: false, enableCache: false);
             $fileInfos += $folder->getFileInfos();
         }
+        $filesOutput = array_values($fileInfos);
+
 
         // print_r($fileInfos);exit;
         $formatter = new ResponseFormatter();
-        return $formatter->format($request, $fileInfos);
+        return $formatter->format($request, $filesOutput);
     });
 
 
@@ -68,12 +70,13 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
         $folder->fetchFilesRecursively(fetchMd5: true, fetchSha1:  true, force: $isForce, enableCache: true);
         // $folder->fetchFilesRecursively(fetchMd5: false, fetchSha1:  false, force: false, enableCache: false);
         $fileInfos = $folder->getFileInfos();
+        $filesOutput = array_values($fileInfos);
 
         // $response->getBody()->write("Files root path. Please specify a file or folder to download.");
         // return $response->withHeader('Content-Type', 'text/plain');
 
         $formatter = new ResponseFormatter();
-        return $formatter->format($request, $fileInfos);
+        return $formatter->format($request, $filesOutput);
     });
 
 
