@@ -6,7 +6,7 @@
     <title>Minecraft 橋接遊戲伺服器用的後端</title>
 
     <?php
-        if ($type=='html' && file_exists('docs/index.html')) {
+        if ($redirectToDocs) {
             echo '<meta http-equiv="refresh" content="0;url=/docs/index.html">';
         }
     ?>

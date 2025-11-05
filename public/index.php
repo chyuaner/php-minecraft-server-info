@@ -62,7 +62,11 @@ require __DIR__ . '/server.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
     $renderer = new PhpRenderer(__DIR__ . '/../src/templates');
-    return $renderer->render($response, 'index.php');
+    $redirectToDocs = file_exists('docs/index.html');
+    $viewData = [
+        'redirectToDocs' => $redirectToDocs,
+    ];
+    return $renderer->render($response, 'index.php', $viewData);
 });
 
 $app->get('/favicon.ico', function (Request $request, Response $response, $args) {
