@@ -5,6 +5,7 @@
 /public/static/mods.json
 /public/static/mods-*.json
 /public/static/mods-*.zip
+/public/static/folder-*.json
 *.part
 /public/static/mods.zip
 /public/docs/
