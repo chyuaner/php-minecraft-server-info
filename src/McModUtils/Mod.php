@@ -86,7 +86,25 @@ class Mod {
             $changed = true;
         }
         if (!empty($parseResult['authors'])) {
-            $this->authors = $parseResult['authors'];
+            $rawAuthors = $parseResult['authors'];
+
+            if (is_array($rawAuthors)) {
+                // 展開陣列中的所有元素（可能是 "aaa, bbb" 或單獨的 "ccc"）
+                $authors = [];
+                foreach ($rawAuthors as $item) {
+                    // 確保是字串才分割
+                    if (is_string($item)) {
+                        $parts = array_map('trim', explode(',', $item));
+                        $authors = array_merge($authors, $parts);
+                    }
+                }
+            } elseif (is_string($rawAuthors)) {
+                $authors = array_map('trim', explode(',', $rawAuthors));
+            } else {
+                $authors = [];
+            }
+
+            $this->authors = $authors;
             $changed = true;
         }
         return $changed;
