@@ -24,8 +24,9 @@
     "order": [
       "getAllMods",
       "getmod",
-      "DownloadFile",
       "DownloadModsZip",
+      "DownloadFile",
+      "DownloadFilePhp",
       "Ping",
       "GetServerBanner",
       "OnlinePlayers"

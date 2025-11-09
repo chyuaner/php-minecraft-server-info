@@ -238,6 +238,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiUse McModTypes
          * @apiUse ResponseFormatter
          * @apiParam {String} file 伺服器上的Mod檔案名稱
+         * @apiParam {Boolean} [download=false] 等同直接輸出下載單一模組檔案本體
          *
          * @apiGroup Mods
          *
@@ -264,9 +265,10 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
         });
 
         /**
-         * @api {get} /:modType/:file/download 下載單一模組檔案
+         * @api {get} /:modType/:file/download 下載單一模組檔案（經由PHP）
+         * @apiDeprecated 此API會經過PHP後端程式處理，效能會略低於上述提供的Nginx直連下載，僅提供Fallback使用
          * @apiGroup Mods
-         * @apiName DownloadFile
+         * @apiName DownloadFilePhp
          * @apiUse McModTypes
          * @apiParam {String} file 伺服器上的Mod檔案名稱
          *
@@ -280,7 +282,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *     (二進位資料)
          *
          * @apiExample 使用範例:
-         *     https://mc-api.yuaner.tw/files/mods/ftb-quests-forge-2001.2.0.jar
+         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar/download
          */
         $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];
@@ -306,6 +308,25 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
     }
     $registeredDlPaths[] = $dlPath;
 
+    /**
+     * @api {get} /files/:modFolder/:file 下載單一模組檔案
+     * @apiGroup Mods
+     * @apiName DownloadFile
+     * @apiParam {String="mods","clientmods"} modFolder
+     * @apiParam {String} file 伺服器上的Mod檔案名稱
+     *
+     * @apiSampleRequest off
+     * @apiSuccess (Success 200) {File} jar 檔案，`Content-Type: application/java-archive`
+     *
+     * @apiSuccessExample {jar} 成功範例:
+     *     HTTP/1.1 200 OK
+     *     Content-Type: application/java-archive
+     *     Content-Disposition: attachment; filename="ftb-quests-forge-2001.2.0.jar"
+     *     (二進位資料)
+     *
+     * @apiExample 使用範例:
+     *     https://mc-api.yuaner.tw/files/mods/ftb-quests-forge-2001.2.0.jar
+     */
     $app->get($dlPath.'{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
         $config = $GLOBALS['config']['mods'];
         $baseModsPath = $config[$modConfigKey]['path'];
