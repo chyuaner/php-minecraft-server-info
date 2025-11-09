@@ -13,8 +13,7 @@ use xPaw\MinecraftQuery;
  * @apiName Ping
  * @apiGroup Server
  * @apiUse McServers
- * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
- * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ * @apiUse ResponseFormatter
  *
  * @apiSuccessExample {json} JSON輸出
  *     HTTP/1.1 200 OK
@@ -76,8 +75,8 @@ $app->get('/query/', function (Request $request, Response $response, array $args
  * @apiGroup Server
  * @apiUse McServers
  * @apiQuery {string="name"} [otype=name] 要輸出完整資訊，還是只想輸出名字
- * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
- * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
+ * @apiUse ResponseFormatter
+ * 
  *
  * @apiSuccessExample {json} JSON輸出完整資訊
  *     HTTP/1.1 200 OK
