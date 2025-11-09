@@ -145,8 +145,8 @@ $app->get('/online-players[/{serverId}]', function (Request $request, Response $
  * @apiExample 使用範例:
  *     https://mc-api.yuaner.tw/banner
  *     https://mc-api.yuaner.tw/banner?players=1
- *     https://mc-api.yuaner.tw/banner/youer1
- *     https://mc-api.yuaner.tw/banner/youer1?players=1
+ *     https://mc-api.yuaner.tw/banner/forge1
+ *     https://mc-api.yuaner.tw/banner/forge1?players=1
  */
 $app->get('/banner[/{serverId}]', function (Request $request, Response $response, array $args) {
     $queryParams = $request->getQueryParams();
