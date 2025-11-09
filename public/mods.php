@@ -83,7 +83,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *     (二進位資料)
          *
          * @apiExample 使用範例:
-         *     curl -O https://mc-api.yuaner.tw/zip/mods
+         *     curl -O https://mc-api.yuaner.tw/mods/zip
          */
         $group->get('/zip', function (Request $request, Response $response, array $args) use ($modConfigKey) {
 
@@ -139,9 +139,9 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiGroup Mods
          * @apiName getAllMods
          * @apiUse McModTypes
-         * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
+         * @apiUse ResponseFormatter
          * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
-         * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
+         * @apiQuery {Boolean} [simple-md5=false] 以精簡版 filename: md5 形式輸出。
          *
          * @apiSuccessExample {json} JSON輸出
          *     HTTP/1.1 200 OK
@@ -162,24 +162,28 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *                     "value": "eed5808509eb279fd342cafebadd5b95accb4ef8",
          *                     "algo": 1
          *                 },
-         *                 "download": "https:\/\/api-minecraft.yuaner.tw\/files\/mods\/ApothicAttributes-1.21.1-2.9.0.jar",
-         *                 "downloadUrl": "https:\/\/api-minecraft.yuaner.tw\/files\/mods\/ApothicAttributes-1.21.1-2.9.0.jar"
+         *                 "download": "https://mc-api.yuaner.tw/files/mods/ApothicAttributes-1.21.1-2.9.0.jar",
+         *                 "downloadUrl": "https://mc-api.yuaner.tw/files/mods/ApothicAttributes-1.21.1-2.9.0.jar"
          *             }
          *         ]
          *     }
          *
-         * @apiSuccessExample {html} HTML輸出
+         * @apiSuccessExample {json} simple-md5=1 精簡版輸出
          *     HTTP/1.1 200 OK
-         *     <ul>
-         *         <li>
-         *             <a href="https://mc-api.yuaner.tw/files/mods/-damage-optimization-1.0.0%2B1.21.3.jar">傷害優化 Damage Optimization</a> [1.0.0+1.21.3] by Array (-damage-optimization-1.0.0+1.21.3.jar)
-         *         </li>
-         *     </ul>
+         *     {
+         *         "4mod_sets-forge-1.4.8+sha.5712396+1.20.1.jar": "a9312e369434ca703b582ce0de4d612a",
+         *         "3kotlinforforge-4.10.0-all.jar": "66104f85db917822d99311bcb6c71f97",
+         *         "embeddium-0.3.31+mc1.20.1.jar": "1dfb2ee49ce9ad5d484ff3eea0d628b7",
+         *         "1catalogue-forge-1.20.1-1.8.0.jar": "524efc6bbcd6da51e86cbf3183587330",
+         *         "2chloride-FORGE-mc1.20.1-v1.7.2.jar": "a50f626acc0ade9c250df4cd16ec960d",
+         *         "mekalus-mc1.20.1-1.7.0.3.jar": "437bbc5f2661a59eb6ab701dcfe3def9",
+         *         "yet-another-config-lib-forge-3.2.2+1.20.jar": "e72feb2f4859acdb40d252c07b24688a"
+         *     }
          *
          * @apiExample 使用範例:
          *     https://mc-api.yuaner.tw/mods
          *     https://mc-api.yuaner.tw/mods/?type=json
-         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json
+         *     https://mc-api.yuaner.tw/mods/?simple-md5&type=json
          */
         $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
             $queryParams = $request->getQueryParams();
@@ -232,9 +236,8 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @api {get} /:modType/:file 取得單一檔案模組資訊
          * @apiName getmod
          * @apiUse McModTypes
+         * @apiUse ResponseFormatter
          * @apiParam {String} file 伺服器上的Mod檔案名稱
-         * @apiQuery {string="json","html"} [type=json] 指定要輸出的格式
-         * @apiHeader {String="text/html","application/json"} [Accept=application/json] 由Header控制要輸出的格式。若有在網址帶入 `type=json` 參數，則以網址參數為主
          *
          * @apiGroup Mods
          *
@@ -242,7 +245,6 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiExample 使用範例:
          *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar
          *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json
-         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json&force=1
          */
         $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];
