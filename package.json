@@ -1,7 +1,7 @@
 {
   "name": "php-minecraft-mods-info",
   "version": "1.0.0",
-  "description": "抓取Minecraft資訊專用後端有提供的API",
+  "description": "提供我們的Minecraft伺服器，模組同步用與伺服器狀態資訊的API",
   "homepage": "https://github.com/chyuaner/php-minecraft-server-info#readme",
   "bugs": {
     "url": "https://github.com/chyuaner/php-minecraft-server-info/issues"
