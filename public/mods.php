@@ -68,6 +68,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiName DownloadModsZip
          * @apiGroup Mods
          * @apiUse McModTypes
+         * @apiQuery {Boolean} [force=false] 不使用快取，強制重新壓縮。
          *
          * @apiDescription
          * 下載伺服器所使用的全部 mods 模組壓縮包，格式為 `.zip`。
@@ -273,7 +274,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiParam {String} file 伺服器上的Mod檔案名稱
          *
          * @apiSampleRequest off
-         * @apiSuccess (Success 200) {File} jar 檔案，`Content-Type: application/java-archive`
+         * @apiSuccess (Success 200) {File} file 檔案，`Content-Type: application/java-archive`
          *
          * @apiSuccessExample {jar} 成功範例:
          *     HTTP/1.1 200 OK
@@ -316,7 +317,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
      * @apiParam {String} file 伺服器上的Mod檔案名稱
      *
      * @apiSampleRequest off
-     * @apiSuccess (Success 200) {File} jar 檔案，`Content-Type: application/java-archive`
+     * @apiSuccess (Success 200) {File} file 檔案，`Content-Type: application/java-archive`
      *
      * @apiSuccessExample {jar} 成功範例:
      *     HTTP/1.1 200 OK

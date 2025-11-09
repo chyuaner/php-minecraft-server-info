@@ -1,4 +1,9 @@
 <?php
+/**
+ * @apiDefine McFolder
+ * @apiParam {String="config","defaultconfigs","kubejs", "modernfix", "resourcepacks", "tacz", "tlm_custom_pack"} folder 資料夾名稱
+ */
+
 
 use App\ResponseFormatter;
 use McModUtils\Folder;
@@ -9,7 +14,46 @@ use Slim\Routing\RouteCollectorProxy;
 
 $app->group("/ofolder", function (RouteCollectorProxy $group) {
 
-    // All
+    /**
+     * @api {get} /ofolder 列出所有檔案資訊
+     * @apiGroup Other Files
+     * @apiName getAll
+     * @apiUse ResponseFormatter
+     * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
+     *
+     * @apiSuccessExample {json} JSON輸出
+     *     HTTP/1.1 200 OK
+     *     {
+     *         [
+     *             [
+     *                 {
+     *                     "filename": "world_generation.json5",
+     *                     "fileName": "world_generation.json5",
+     *                     "path": "config/biomeswevegone/world_generation.json5",
+     *                     "download": "https://mc-api.yuaner.tw/files/config/biomeswevegone/world_generation.json5",
+     *                     "downloadUrl": "https://mc-api.yuaner.tw/files/config/biomeswevegone/world_generation.json5",
+     *                     "mtime": 1762543534,
+     *                     "size": 2908,
+     *                     "md5": "b9887200d43aa51425e084754b25506a",
+     *                     "sha1": "352932a6ba5b85f3137bf4a5fe52b106ce470d41"
+     *                 },
+     *                 {
+     *                     "filename": "trades.json",
+     *                     "fileName": "trades.json",
+     *                     "path": "config/biomeswevegone/trades.json",
+     *                     "download": "https://mc-api.yuaner.tw/files/config/biomeswevegone/trades.json",
+     *                     "downloadUrl": "https://mc-api.yuaner.tw/files/config/biomeswevegone/trades.json",
+     *                     "mtime": 1762543513,
+     *                     "size": 639,
+     *                     "md5": "72787d919c96962faa48f4f4ffb78cf8",
+     *                     "sha1": "17b020f037c64fb06acede658ba1ad0fb3aefcc2"
+     *                 }
+     *         ]
+     *     }
+     *
+     * @apiExample 使用範例:
+     *     https://mc-api.yuaner.tw/ofolder
+     */
     $group->get('', function (Request $request, Response $response, array $args) {
         $isForce = $request->getQueryParams()['force'] ?? false;
         $directorys = array_keys($GLOBALS['config']['other_folders']);
@@ -50,6 +94,27 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
         return $foundPath;
     }
 
+    /**
+     * @api {get} /ofolder/zip 下載全部壓縮包
+     * @apiName DownloadZip
+     * @apiGroup Other Files
+     * @apiQuery {Boolean} [force=false] 不使用快取，強制重新壓縮。
+     *
+     * @apiDescription
+     * 下載伺服器整個資料夾壓縮包，格式為 `.zip`。
+     *
+     * @apiSampleRequest off
+     * @apiSuccess (Success 200) {File} zip 壓縮檔案，`Content-Type: application/zip`
+     *
+     * @apiSuccessExample {zip} 成功範例:
+     *     HTTP/1.1 200 OK
+     *     Content-Disposition: attachment; filename="BarianMcMods整合包-20250727-0906.zip"
+     *     Content-Type: application/zip
+     *     (二進位資料)
+     *
+     * @apiExample 使用範例:
+     *     curl -O https://mc-api.yuaner.tw/ofolder/zip
+     */
     $group->get('/zip', function (Request $request, Response $response, array $args) {
         $requested = trim('/files/config/', '/');
 
@@ -115,7 +180,47 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
         readfile($zip_path);
     });
 
-    // 指定的Folder
+    /**
+     * @api {get} /ofolder/:folder 列出單一資料夾內的所有檔案資訊
+     * @apiGroup Other Files
+     * @apiName getAllSingle
+     * @apiUse McFolder
+     * @apiUse ResponseFormatter
+     * @apiQuery {Boolean} [force=false] 不使用快取，強制刷新。
+     *
+     * @apiSuccessExample {json} JSON輸出
+     *     HTTP/1.1 200 OK
+     *     {
+     *         [
+     *             [
+     *                 {
+     *                     "filename": "world_generation.json5",
+     *                     "fileName": "world_generation.json5",
+     *                     "path": "config/biomeswevegone/world_generation.json5",
+     *                     "download": "https://mc-api.yuaner.tw/files/config/biomeswevegone/world_generation.json5",
+     *                     "downloadUrl": "https://mc-api.yuaner.tw/files/config/biomeswevegone/world_generation.json5",
+     *                     "mtime": 1762543534,
+     *                     "size": 2908,
+     *                     "md5": "b9887200d43aa51425e084754b25506a",
+     *                     "sha1": "352932a6ba5b85f3137bf4a5fe52b106ce470d41"
+     *                 },
+     *                 {
+     *                     "filename": "trades.json",
+     *                     "fileName": "trades.json",
+     *                     "path": "config/biomeswevegone/trades.json",
+     *                     "download": "https://mc-api.yuaner.tw/files/config/biomeswevegone/trades.json",
+     *                     "downloadUrl": "https://mc-api.yuaner.tw/files/config/biomeswevegone/trades.json",
+     *                     "mtime": 1762543513,
+     *                     "size": 639,
+     *                     "md5": "72787d919c96962faa48f4f4ffb78cf8",
+     *                     "sha1": "17b020f037c64fb06acede658ba1ad0fb3aefcc2"
+     *                 }
+     *         ]
+     *     }
+     *
+     * @apiExample 使用範例:
+     *     https://mc-api.yuaner.tw/ofolder
+     */
     $group->get('/{folder}', function (Request $request, Response $response, array $args) {
         $isForce = $request->getQueryParams()['force'] ?? false;
 
@@ -143,6 +248,28 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
     });
 
 
+    /**
+     * @api {get} /ofolder/:folder/zip 下載單一資料夾壓縮包
+     * @apiName DownloadSingleZip
+     * @apiGroup Other Files
+     * @apiUse McFolder
+     * @apiQuery {Boolean} [force=false] 不使用快取，強制重新壓縮。
+     *
+     * @apiDescription
+     * 下載伺服器整個資料夾壓縮包，格式為 `.zip`。
+     *
+     * @apiSampleRequest off
+     * @apiSuccess (Success 200) {File} zip 壓縮檔案，`Content-Type: application/zip`
+     *
+     * @apiSuccessExample {zip} 成功範例:
+     *     HTTP/1.1 200 OK
+     *     Content-Disposition: attachment; filename="BarianMcMods整合包-20250727-0906.zip"
+     *     Content-Type: application/zip
+     *     (二進位資料)
+     *
+     * @apiExample 使用範例:
+     *     curl -O https://mc-api.yuaner.tw/ofolder/defaultconfigs/zip
+     */
     $group->get('/{folder}/zip', function (Request $request, Response $response, array $args) {
         $isForce = $request->getQueryParams()['force'] ?? false;
 
@@ -247,6 +374,23 @@ foreach ($GLOBALS['config']['other_folders'] as $folderPath => $dlUrlPath) {
     }
     $registeredDlPaths[] = $dlUrlPath;
 
+    /**
+     * @api {get} /files/:folder/:file 下載單一檔案
+     * @apiGroup Other Files
+     * @apiName DownloadSingleFile
+     * @apiUse McFolder
+     * @apiParam {String} file 伺服器上的檔案名稱
+     *
+     * @apiSampleRequest off
+     * @apiSuccess (Success 200) {File} file 檔案本體內容
+     *
+     * @apiSuccessExample {jar} 成功範例:
+     *     HTTP/1.1 200 OK
+     *     (二進位資料)
+     *
+     * @apiExample 使用範例:
+     *     https://mc-api.yuaner.tw/files/config/ftbquests/quests/data.snbt
+     */
     $app->get($dlUrlPath.'{filename:.*}', function (Request $request, Response $response, array $args) use ($folderPath, $sendDownload) {
 
         $modFileName = $args['filename'];

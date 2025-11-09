@@ -27,6 +27,11 @@
       "DownloadModsZip",
       "DownloadFile",
       "DownloadFilePhp",
+      "getAll",
+      "DownloadZip",
+      "getAllSingle",
+      "DownloadSingleZip",
+      "DownloadSingleFile",
       "Ping",
       "GetServerBanner",
       "OnlinePlayers"
