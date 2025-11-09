@@ -83,7 +83,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *     (二進位資料)
          *
          * @apiExample 使用範例:
-         *     curl -O https://api-minecraft.yuaner.tw/zip/mods
+         *     curl -O https://mc-api.yuaner.tw/zip/mods
          */
         $group->get('/zip', function (Request $request, Response $response, array $args) use ($modConfigKey) {
 
@@ -172,14 +172,14 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *     HTTP/1.1 200 OK
          *     <ul>
          *         <li>
-         *             <a href="https://api-minecraft.yuaner.tw/files/mods/-damage-optimization-1.0.0%2B1.21.3.jar">傷害優化 Damage Optimization</a> [1.0.0+1.21.3] by Array (-damage-optimization-1.0.0+1.21.3.jar)
+         *             <a href="https://mc-api.yuaner.tw/files/mods/-damage-optimization-1.0.0%2B1.21.3.jar">傷害優化 Damage Optimization</a> [1.0.0+1.21.3] by Array (-damage-optimization-1.0.0+1.21.3.jar)
          *         </li>
          *     </ul>
          *
          * @apiExample 使用範例:
-         *     https://api-minecraft.yuaner.tw/mods
-         *     https://api-minecraft.yuaner.tw/mods/?type=json
-         *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
+         *     https://mc-api.yuaner.tw/mods
+         *     https://mc-api.yuaner.tw/mods/?type=json
+         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
          */
         $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
             $queryParams = $request->getQueryParams();
@@ -240,9 +240,9 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *
          *
          * @apiExample 使用範例:
-         *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
-         *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
-         *     https://api-minecraft.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json&force=1
+         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
+         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
+         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json&force=1
          */
         $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];
@@ -278,7 +278,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *     (二進位資料)
          *
          * @apiExample 使用範例:
-         *     https://api-minecraft.yuaner.tw/files/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
+         *     https://mc-api.yuaner.tw/files/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
          */
         $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];

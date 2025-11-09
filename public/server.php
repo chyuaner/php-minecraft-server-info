@@ -133,7 +133,7 @@ $app->get('/online-players[/{serverId}]', function (Request $request, Response $
  * 可透過 `players=1` 顯示上線玩家名單。
  *
  * #### 預覽
- * <img src="https://api-minecraft.yuaner.tw/banner/?players=1">
+ * <img src="https://mc-api.yuaner.tw/banner/?players=1">
  *
  * @apiSuccess (Success 200) {File} png 返回一張 `image/png` 格式的伺服器狀態圖片。
  *
@@ -143,10 +143,10 @@ $app->get('/online-players[/{serverId}]', function (Request $request, Response $
  *     (二進位圖片資料)
  *
  * @apiExample 使用範例:
- *     https://api-minecraft.yuaner.tw/banner
- *     https://api-minecraft.yuaner.tw/banner?players=1
- *     https://api-minecraft.yuaner.tw/banner/youer1
- *     https://api-minecraft.yuaner.tw/banner/youer1?players=1
+ *     https://mc-api.yuaner.tw/banner
+ *     https://mc-api.yuaner.tw/banner?players=1
+ *     https://mc-api.yuaner.tw/banner/youer1
+ *     https://mc-api.yuaner.tw/banner/youer1?players=1
  */
 $app->get('/banner[/{serverId}]', function (Request $request, Response $response, array $args) {
     $queryParams = $request->getQueryParams();
