@@ -179,7 +179,7 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiExample 使用範例:
          *     https://mc-api.yuaner.tw/mods
          *     https://mc-api.yuaner.tw/mods/?type=json
-         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
+         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json
          */
         $group->get('', function (Request $request, Response $response, array $args) use ($modConfigKey) {
             $queryParams = $request->getQueryParams();
@@ -240,9 +240,9 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          *
          *
          * @apiExample 使用範例:
-         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
-         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json
-         *     https://mc-api.yuaner.tw/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar?type=json&force=1
+         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar
+         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json
+         *     https://mc-api.yuaner.tw/mods/ftb-quests-forge-2001.2.0.jar?type=json&force=1
          */
         $group->get('/{filename}', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];
@@ -274,11 +274,11 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
          * @apiSuccessExample {jar} 成功範例:
          *     HTTP/1.1 200 OK
          *     Content-Type: application/java-archive
-         *     Content-Disposition: attachment; filename="automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar"
+         *     Content-Disposition: attachment; filename="ftb-quests-forge-2001.2.0.jar"
          *     (二進位資料)
          *
          * @apiExample 使用範例:
-         *     https://mc-api.yuaner.tw/files/mods/automodpack-mc1.21.1-neoforge-4.0.0-beta38.jar
+         *     https://mc-api.yuaner.tw/files/mods/ftb-quests-forge-2001.2.0.jar
          */
         $group->get('/{filename}/download', function (Request $request, Response $response, array $args) use ($modConfigKey, $sendDownload) {
             $config = $GLOBALS['config']['mods'];
