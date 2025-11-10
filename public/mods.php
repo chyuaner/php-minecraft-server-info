@@ -27,7 +27,7 @@
 
 /**
  * @apiDefine McModTypes
- * @apiParam {String="mods","client-mods","server-mods"} modType="mods"
+ * @apiParam {String=mods,client-mods,server-mods} modType=mods
  */
 
 use App\ResponseFormatter;

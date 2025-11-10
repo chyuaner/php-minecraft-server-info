@@ -1,10 +1,4 @@
 <?php
-
-/**
- * @apiDefine McServers
- * @apiParam {String="forge1","auth2"} [server] 選填，伺服器名稱，例如 `forge1`。未填則使用預設伺服器。
- */
-
 /**
  * @apiDefine ResponseFormatter
  * @apiQuery {string="json","html"} [type] 指定要輸出的格式，選填，若有帶入將以這個為主，Accept Header將失效

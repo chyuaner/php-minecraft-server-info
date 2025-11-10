@@ -1,7 +1,7 @@
 <?php
 /**
  * @apiDefine McFolder
- * @apiParam {String="config","defaultconfigs","kubejs", "modernfix", "resourcepacks", "tacz", "tlm_custom_pack"} folder 資料夾名稱
+ * @apiParam {String=config,defaultconfigs,kubejs, modernfix, resourcepacks, tacz, tlm_custom_pack} folder=config 資料夾名稱
  */
 
 

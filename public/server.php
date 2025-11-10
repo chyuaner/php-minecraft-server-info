@@ -1,4 +1,8 @@
 <?php
+/**
+ * @apiDefine McServers
+ * @apiParam {String=forge1,auth2} [server] 選填，伺服器名稱，例如 `forge1`。未填則使用預設伺服器。
+ */
 
 use App\ResponseFormatter;
 use McModUtils\Server;
