@@ -46,7 +46,9 @@
     }
   },
   "devDependencies": {
-    "@gitawego/apidoc-theme": "^1.0.2",
     "apidoc": "^1.2.0"
+  },
+  "dependencies": {
+    "@gitawego/apidoc-theme": "github:chyuaner/apidoc-theme"
   }
 }
