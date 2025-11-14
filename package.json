@@ -28,6 +28,7 @@
       "DownloadFile",
       "DownloadFilePhp",
       "getAll",
+      "getFolderNames",
       "DownloadZip",
       "getAllSingle",
       "DownloadSingleZip",

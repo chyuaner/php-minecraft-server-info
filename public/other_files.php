@@ -95,6 +95,90 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
     }
 
     /**
+     * @api {get} /ofolder/folders 列出所有可用的資料夾
+     * @apiGroup Other Files
+     * @apiName getFolderNames
+     * @apiUse ResponseFormatter
+     * @apiQuery {Boolean} [include-mods=false] 要不要包含模組資料夾
+     * @apiQuery {Boolean} [only-name=false] 只輸出名稱
+     *
+     * @apiSuccessExample {json} JSON輸出
+     *     HTTP/1.1 200 OK
+     *     {
+     *         "/files/config/": "config",
+     *         "/files/defaultconfigs/": "defaultconfigs",
+     *         "/files/kubejs/": "kubejs",
+     *         "/files/modernfix/": "modernfix",
+     *         "/files/resourcepacks/": "resourcepacks",
+     *         "/files/tacz/": "tacz",
+     *         "/files/tlm_custom_pack/": "tlm_custom_pack"
+     *     }
+     * 
+     * @apiSuccessExample {json} only-name模式輸出
+     *     HTTP/1.1 200 OK
+     *     [
+     *         "mods",
+     *         "clientmods",
+     *         "config",
+     *         "defaultconfigs",
+     *         "kubejs",
+     *         "modernfix",
+     *         "resourcepacks",
+     *         "tacz",
+     *         "tlm_custom_pack"
+     *     ]
+     *
+     * @apiExample 使用範例:
+     *     https://mc-api.yuaner.tw/ofolder/folders?include-mods=1&only-name=1
+     */
+    $group->get('/folders', function (Request $request, Response $response, array $args) {
+        $isIncludeMods = $request->getQueryParams()['include-mods'] ?? false;
+        $isOnlyName = $request->getQueryParams()['only-name'] ?? false;
+
+        $output = [];
+        
+        if ($isIncludeMods) {
+            // $moddirectorys = array_map(function($modInfoContent) {
+            //     return $modInfoContent['dl_urlpath'];
+            // }, $GLOBALS['config']['mods']);
+
+            $modInfos = $GLOBALS['config']['mods'];
+
+            $modOutput = [];
+            foreach ($modInfos as $modKey => $modInfo) {
+                $dl_urlpath = $modInfo['dl_urlpath'];
+                
+                $modOutput[$dl_urlpath] = $dl_urlpath;
+            }
+            
+            $output += $modOutput;
+        }
+        
+        $directoryOutput = [];
+        $directoryValues = array_values($GLOBALS['config']['other_folders']);
+        foreach ($directoryValues as $key => $value) {
+            $directoryOutput[$value] = $value;
+        }
+        $output += $directoryOutput;
+
+        $folders = [];
+        foreach ($output as $index => $thePath) {
+            // $foundPath = getRawPath($thePath);
+            $norm = trim($thePath, '/');           // e.g. "files/config"
+            if (strpos($norm, 'files/') === 0) {
+                $norm = substr($norm, strlen('files/')); // e.g. "config"
+            }
+            $folders[$thePath] = $norm;
+        }
+
+        if ($isOnlyName) {
+            $folders = array_values($folders);
+        }
+        $formatter = new ResponseFormatter();
+        return $formatter->format($request, $folders);
+    });
+
+    /**
      * @api {get} /ofolder/zip 下載全部壓縮包
      * @apiName DownloadZip
      * @apiGroup Other Files
