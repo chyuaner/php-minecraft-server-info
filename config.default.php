@@ -20,6 +20,12 @@ return [
             'ignore_serverside_prefix' => true,
             'only_serverside_prefix' => false,
         ],
+        'optional' => [
+            'path' => $baseMinecraftPath.'/optionalmods',
+            'dl_urlpath' => '/files/optional/',
+            'ignore_serverside_prefix' => true,
+            'only_serverside_prefix' => false,
+        ],
         'server' => [
             'path' => $baseMinecraftPath.'/mods',
             'dl_urlpath' => '/files/mods/',

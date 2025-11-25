@@ -27,7 +27,7 @@
 
 /**
  * @apiDefine McModTypes
- * @apiParam {String=mods,client-mods,server-mods} modType=mods
+ * @apiParam {String=mods,client-mods,optional-mods,server-mods} modType=mods
  */
 
 use App\ResponseFormatter;
@@ -41,6 +41,7 @@ use Slim\Routing\RouteCollectorProxy;
 $routerConfigMap = [
     'mods' => 'common',
     'client-mods' => 'client',
+    'optional-mods' => 'optional',
     'server-mods' => 'server',
 ];
 

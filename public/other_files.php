@@ -113,12 +113,13 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
      *         "/files/tacz/": "tacz",
      *         "/files/tlm_custom_pack/": "tlm_custom_pack"
      *     }
-     * 
+     *
      * @apiSuccessExample {json} only-name模式輸出
      *     HTTP/1.1 200 OK
      *     [
      *         "mods",
      *         "clientmods",
+     *         "optionalmods",
      *         "config",
      *         "defaultconfigs",
      *         "kubejs",
@@ -136,7 +137,7 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
         $isOnlyName = $request->getQueryParams()['only-name'] ?? false;
 
         $output = [];
-        
+
         if ($isIncludeMods) {
             // $moddirectorys = array_map(function($modInfoContent) {
             //     return $modInfoContent['dl_urlpath'];
@@ -147,13 +148,13 @@ $app->group("/ofolder", function (RouteCollectorProxy $group) {
             $modOutput = [];
             foreach ($modInfos as $modKey => $modInfo) {
                 $dl_urlpath = $modInfo['dl_urlpath'];
-                
+
                 $modOutput[$dl_urlpath] = $dl_urlpath;
             }
-            
+
             $output += $modOutput;
         }
-        
+
         $directoryOutput = [];
         $directoryValues = array_values($GLOBALS['config']['other_folders']);
         foreach ($directoryValues as $key => $value) {
