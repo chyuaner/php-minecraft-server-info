@@ -12,6 +12,7 @@
     ?>
 </head>
 <body>
+<?php if (!$redirectToDocs): ?>
     <h1>Minecraft 橋接遊戲伺服器用的後端</h1>
 
     <h2>伺服器位址</h2>
@@ -26,5 +27,6 @@
         <li>GET /ping</li>
         <li>GET /banner</li>
     </ul>
+<?php endif; ?>
 </body>
 </html>
