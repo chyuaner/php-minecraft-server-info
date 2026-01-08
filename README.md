@@ -38,7 +38,7 @@ sudo systemctl reload php8.4-fpm.service
 ## 建置&啟動開發伺服器
 ```
 git clone <url>
-cd php-minecraft-mods-info
+cd php-minecraft-server-info
 composer install
 composer dump-autoload
 cp config.default.php config.php
@@ -60,18 +60,18 @@ php -S 127.0.0.1:8000 -t public
 
 ## Debian 13 上線佈署說明
 ```
-sudo apt install php composer php-zip php-gd nodejs npm
+sudo apt install php-fpm composer php-zip php-gd nodejs npm
 cd /opt/minecraft/
 git clone <url>
-cd php-minecraft-mods-info
+cd php-minecraft-server-info
 composer install
 npm install
 cp config.default.php config.php
 vim config.php # 根據需求修改
 
 sudo gpasswd -a www-data minecraft
-sudo chgrp minecraft -R /opt/minecraft/php-minecraft-mods-info
-sudo chmod g+s -R /opt/minecraft/php-minecraft-mods-info
+sudo chgrp minecraft -R /opt/minecraft/php-minecraft-server-info
+sudo chmod g+s -R /opt/minecraft/php-minecraft-server-info
 sudo systemctl restart php8.4-fpm.service 
 ```
 
