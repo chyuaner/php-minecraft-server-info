@@ -1,5 +1,5 @@
 <?php
-// McServers 定義已移至 public/_apidoc_defines.php 並由腳本動態產生
+// McServers 定義已移至 public/00_apidoc_defines.php 並由腳本動態產生
 
 
 

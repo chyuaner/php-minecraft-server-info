@@ -1,8 +1,6 @@
 <?php
-/**
- * @apiDefine McFolder
- * @apiParam {String=config,defaultconfigs,kubejs, modernfix, resourcepacks, tacz, tlm_custom_pack} folder=config 資料夾名稱
- */
+// McFolder 定義已移至 public/00_apidoc_defines.php 並由腳本動態產生
+
 
 
 use App\ResponseFormatter;
