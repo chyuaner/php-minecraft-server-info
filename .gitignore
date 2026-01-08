@@ -10,6 +10,7 @@
 /public/static/mods.zip
 /public/docs/
 /public/storage/all.zip
+/public/_apidoc_defines.php
 
 ### Composer ###
 composer.phar

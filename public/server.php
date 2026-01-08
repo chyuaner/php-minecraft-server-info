@@ -1,8 +1,7 @@
 <?php
-/**
- * @apiDefine McServers
- * @apiParam {String=forge1,auth2} [server] 選填，伺服器名稱，例如 `forge1`。未填則使用預設伺服器。
- */
+// McServers 定義已移至 public/_apidoc_defines.php 並由腳本動態產生
+
+
 
 use App\ResponseFormatter;
 use McModUtils\Server;
@@ -80,7 +79,7 @@ $app->get('/query/', function (Request $request, Response $response, array $args
  * @apiUse McServers
  * @apiQuery {string="name"} [otype=name] 要輸出完整資訊，還是只想輸出名字
  * @apiUse ResponseFormatter
- * 
+ *
  *
  * @apiSuccessExample {json} JSON輸出完整資訊
  *     HTTP/1.1 200 OK
