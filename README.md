@@ -138,7 +138,9 @@ sudo systemctl restart php8.4-fpm.service
     echo "✅ [DEPLOY] Done at $(date)"
     ```
 
-* vim /opt/minecraft/webhook/deploy-php-minecraft-server-info.sh
+* chmod +x /opt/minecraft/webhook/deploy-php-minecraft-server-info.sh
+* sudo git config --system --add safe.directory /opt/minecraft/php-minecraft-server-info
+* sudo git config --system --get-all safe.directory
 * sudo systemctl start webhook
 * sudo systemctl enable webhook
 * sudo journalctl -u webhook.service -f
