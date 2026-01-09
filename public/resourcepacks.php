@@ -87,4 +87,53 @@ $app->group('/resourcepacks', function (RouteCollectorProxy $group) {
         exit;
     });
 
+    /**
+     * @api {get} /resourcepacks/sha1 取得合併後資源包的 SHA1 值
+     * @apiName GetResourcePackSha1
+     * @apiGroup ResourcePacks
+     * @apiDescription
+     * 取得合併後資源包的 SHA1 雜湊值。
+     * 用於填充 server.properties 中的 resource-pack-sha1 欄位。
+     *
+     * @apiSuccessExample {String} 成功範例:
+     *     HTTP/1.1 200 OK
+     *     43e191ba879bb774b42e3b030659e4be...
+     *
+     * @apiExample 使用範例:
+     *     curl https://mc-api.yuaner.tw/resourcepacks/sha1
+     */
+    $group->get('/sha1', function (Request $request, Response $response, array $args) {
+        if (empty($GLOBALS['config']['resourcepacks']['path'])) {
+            $response->getBody()->write("Config 'resourcepacks.path' is not set.");
+            return $response->withStatus(500);
+        }
+
+        $rpUtils = new ResourcePackUtils();
+        $rpUtils->analyze();
+        $folderHash = $rpUtils->getHashed();
+        if (empty($folderHash)) {
+            $response->getBody()->write("No items found.");
+            return $response->withStatus(404);
+        }
+
+        $zip_path = BASE_PATH.'/public/static/resourcepacks-'.$folderHash.'.zip';
+        $zip = new Zip($zip_path);
+        $zipedHash = $zip->getZipComment();
+
+        // 如果檔案不存在或雜湊不符，重新產生
+        if ($folderHash !== $zipedHash || !file_exists($zip_path)) {
+            set_time_limit(0);
+            $rpUtils->mergeTo($zip_path);
+        }
+
+        if (file_exists($zip_path)) {
+            $sha1 = sha1_file($zip_path);
+            $response->getBody()->write($sha1);
+            return $response->withHeader('Content-Type', 'text/plain');
+        }
+
+        $response->getBody()->write("Failed to calculate SHA1.");
+        return $response->withStatus(500);
+    });
+
 });
