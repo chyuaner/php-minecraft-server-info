@@ -68,7 +68,7 @@ final class Mods
         $modsPathNameMap = [];
         $hashComponents = [];
 
-        $ignoredDirs = ['.connector', '.index', '.git', 'logs', 'cache'];
+        $ignoredDirs = ['.connector', '.index', '.git', 'logs', 'cache', 'luckperms'];
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS)
         );
