@@ -60,6 +60,7 @@ $app->add(new TrailingSlash(trailingSlash: false)); // true adds the trailing sl
 require __DIR__ . '/mods.php';
 require __DIR__ . '/other_files.php';
 require __DIR__ . '/server.php';
+require __DIR__ . '/resourcepacks.php';
 
 $app->get('/', function (Request $request, Response $response, $args) {
     $renderer = new PhpRenderer(__DIR__ . '/../src/templates');

@@ -113,4 +113,15 @@ class Zip
 
         return $zip->close();
     }
+
+    public function unzip(string $destination): bool {
+        $zipPath = $this->path;
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath) === true) {
+            $zip->extractTo($destination);
+            $zip->close();
+            return true;
+        }
+        return false;
+    }
 }

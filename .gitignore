@@ -6,6 +6,9 @@
 /public/static/mods-*.json
 /public/static/mods-*.zip
 /public/static/folder-*.json
+/public/static/folder-*.zip
+/public/static/resourcepacks-*.json
+/public/static/resourcepacks-*.zip
 *.part
 /public/static/mods.zip
 /public/docs/

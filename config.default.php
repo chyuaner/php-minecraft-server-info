@@ -44,6 +44,10 @@ return [
         $baseMinecraftPath.'/tlm_custom_pack' => '/files/tlm_custom_pack/',
     ],
 
+    'resourcepacks' => [
+        'path' => $baseMinecraftPath.'/resourcepacks',
+    ],
+
     // 主要伺服器進入點（若有用到Velocity做為群組伺服器(代理伺服器)，這部份填代理伺服器主要進入點）
     'minecraft_public_hoststring' => 'mcserver.barian.moe',
     'minecraft_host' => '127.0.0.1',
