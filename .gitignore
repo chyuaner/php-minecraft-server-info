@@ -12,6 +12,8 @@
 *.part
 /public/static/mods.zip
 /public/docs/
+/docs/.vitepress/cache/
+/docs/.vitepress/dist/
 /public/storage/all.zip
 /public/00_apidoc_defines.php
 
