@@ -5,10 +5,13 @@ hero:
   name: "Minecraft模組同步專用PHP後端"
   text: "Minecraft Server API"
   tagline: 主要有模組列表、zip打包下載功能提供給我們自己的客戶端模組同步程式、我們的官網使用。額外提供伺服器上線人數查詢。
+  image:
+    src: /public/mc-bapi.png
+    alt: elrc-studio
   actions:
     - theme: brand
       text: 快速開始
-      link: /use/getting-started
+      link: /use/1-overview
     - theme: brand
       text: 瀏覽 API 文件
       link: /api/
