@@ -7,6 +7,9 @@ hero:
   tagline: 提供我們的Minecraft伺服器，模組同步用與伺服器狀態資訊的API
   actions:
     - theme: brand
+      text: 快速開始
+      link: /use/getting-started
+    - theme: brand
       text: 瀏覽 API 文件
       link: /api/
       target: _self
@@ -20,4 +23,3 @@ features:
   - title: 完整 API
     details: 提供完整的 HTTP API 讓開發者介接。
 ---
-
