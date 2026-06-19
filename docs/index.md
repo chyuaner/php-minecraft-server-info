@@ -6,7 +6,7 @@ hero:
   text: "Minecraft Server API"
   tagline: 主要有模組列表、zip打包下載功能提供給我們自己的客戶端模組同步程式、我們的官網使用。額外提供伺服器上線人數查詢。
   image:
-    src: ./public/mc-bapi.png
+    src: /mc-bapi.png
     alt: elrc-studio
   actions:
     - theme: brand
