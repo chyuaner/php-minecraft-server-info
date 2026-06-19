@@ -1,0 +1,168 @@
+/* Disable default cross-fade for root to keep header and sidebar static */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Associate the navbar with a transition name and keep it on top */
+.VPNavBar {
+  view-transition-name: vp-nav-bar;
+}
+
+::view-transition-group(vp-nav-bar) {
+  z-index: 100;
+}
+
+::view-transition-old(vp-nav-bar),
+::view-transition-new(vp-nav-bar) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Associate the main content container with the transition name */
+#VPContent {
+  view-transition-name: vp-content;
+}
+
+/* Animations for the content transition */
+::view-transition-old(vp-content) {
+  animation: 0.6s cubic-bezier(0.4, 0, 0.2, 1) both fade-out,
+             0.6s cubic-bezier(0.4, 0, 0.2, 1) both slide-down;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(vp-content) {
+  animation: 0.6s cubic-bezier(0.4, 0, 0.2, 1) both fade-in,
+             0.6s cubic-bezier(0.4, 0, 0.2, 1) both slide-up;
+  mix-blend-mode: normal;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(0); }
+  to { transform: translateY(20px); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); }
+  to { transform: translateY(0); }
+}
+
+/* Associate sidebar with a transition name */
+.VPSidebar {
+  view-transition-name: vp-sidebar;
+}
+
+/* Default transition: simple cross-fade when both pages have sidebars */
+::view-transition-old(vp-sidebar) {
+  animation: 0.6s ease both fade-out;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(vp-sidebar) {
+  animation: 0.6s ease both fade-in;
+  mix-blend-mode: normal;
+}
+
+/* Slide-in transition when entering from a page with NO sidebar */
+.transition-sidebar-enter::view-transition-new(vp-sidebar) {
+  animation: 0.6s cubic-bezier(0.4, 0, 0.2, 1) both slide-in-left;
+}
+
+/* Slide-out transition when leaving to a page with NO sidebar */
+.transition-sidebar-leave::view-transition-old(vp-sidebar) {
+  animation: 0.6s cubic-bezier(0.4, 0, 0.2, 1) both slide-out-left;
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Respect user preferences for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Dark mode circular transition */
+::view-transition-old(root),
+.dark::view-transition-new(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root),
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+
+/* Disable routing transitions when toggling dark mode */
+.theme-appearance-transition #VPContent,
+.theme-appearance-transition .VPSidebar,
+.theme-appearance-transition .VPNavBar {
+  view-transition-name: none !important;
+}
+
+/* 僅限首頁生效的 Hero 圖片大小微調 */
+.VPHero .image-src {
+  max-width: 500px; 
+  max-height: 500px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+@media (max-width: 768px) {
+  .VPHero .image-src {
+    max-width: 280px;
+    max-height: 280px;
+  }
+}
+
+/* 將首頁 VPHero 底下的 link 連結加上底線 */
+.VPHero .VPButton.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 僅限首頁特色卡片樣式微調 */
+.arrow {
+  display: inline-block;
+  transition: transform 0.25s;
+}
+.feature-link:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* 深淺色模式圖示切換 */
+.dark .icon-light {
+  display: none;
+}
+html:not(.dark) .icon-dark {
+  display: none;
+}
+
