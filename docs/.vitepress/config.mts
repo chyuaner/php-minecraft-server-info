@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "伺服器技術文件",
+  title: "Minecraft模組同步專用PHP後端",
   description: "Minecraft Server API & Documentation",
   base: process.env.BASE_PATH || '/docs/',
   outDir: '../public/docs',
@@ -12,7 +12,8 @@ export default defineConfig({
       { text: '首頁', link: '/' },
       { text: '安裝與開發說明', link: '/use/getting-started' },
       { text: 'API 說明', link: '/api/', target: '_self' },
-      { text: '下載客戶端', link: 'https://github.com/chyuaner/python-minecraft-mods-sync/releases' }
+      { text: '下載客戶端', link: 'https://github.com/chyuaner/python-minecraft-mods-sync/releases' },
+      { text: '官網', link: 'https://mcweb.barian.moe' }
     ],
 
     sidebar: [

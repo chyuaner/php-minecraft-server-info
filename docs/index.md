@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: "伺服器技術文件"
-  text: "Minecraft Server API & Documentation"
-  tagline: 提供我們的Minecraft伺服器，模組同步用與伺服器狀態資訊的API
+  name: "Minecraft模組同步專用PHP後端"
+  text: "Minecraft Server API"
+  tagline: 主要有模組列表、zip打包下載功能提供給我們自己的客戶端模組同步程式、我們的官網使用。額外提供伺服器上線人數查詢。
   actions:
     - theme: brand
       text: 快速開始
