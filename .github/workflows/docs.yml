@@ -38,6 +38,8 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+        env:
+          BASE_PATH: '/php-minecraft-server-info/'
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

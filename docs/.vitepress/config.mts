@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "伺服器技術文件",
   description: "Minecraft Server API & Documentation",
-  base: '/docs/',
+  base: process.env.BASE_PATH || '/docs/',
   outDir: '../public/docs',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
