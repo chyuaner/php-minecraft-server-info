@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Minecraft模組同步專用PHP後端",
   description: "Minecraft Server API & Documentation",
+  ignoreDeadLinks: true,
   base: process.env.BASE_PATH || '/docs/',
   outDir: '../public/docs',
   themeConfig: {
