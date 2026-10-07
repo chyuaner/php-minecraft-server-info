@@ -278,7 +278,7 @@ final class Server
         $maxPlayersCount = $this->getMaxPlayersCount();
         $favicon = $this->getFaviconImage();
 
-        return General::server($hostString, $subtitle, $onlinePlayersCount, $maxPlayersCount, $favicon, $background, $ping);
+        return General::server($hostString, $subtitle, $onlinePlayersCount, $maxPlayersCount, $favicon, $background, $ping, !$isShowPlayer);
     }
 
     public static function serverBanner(
@@ -288,8 +288,9 @@ final class Server
         int|string $max_players = -1,
         $favicon = null,
         $background = null,
-        float|int $ping = 0
+        float|int $ping = 0,
+        bool $useCustomMotdFont = true
     ) : \GdImage {
-        return General::server($address, $motd, $players, $max_players, $favicon, $background, $ping);
+        return General::server($address, $motd, $players, $max_players, $favicon, $background, $ping, $useCustomMotdFont);
     }
 }

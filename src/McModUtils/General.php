@@ -62,6 +62,20 @@ class General
         return 'unifont';
     }
 
+    public static function getMinecraftFontFile() : string {
+        if (!empty($GLOBALS['config']['banner_minecraft_font']) && file_exists($GLOBALS['config']['banner_minecraft_font'])) {
+            return $GLOBALS['config']['banner_minecraft_font'];
+        }
+        if (defined('\MinecraftBanner\MinecraftBanner::FONT_FILE') && file_exists(MinecraftBanner::FONT_FILE)) {
+            return MinecraftBanner::FONT_FILE;
+        }
+        $vendorFont = __DIR__ . '/../../vendor/games647/minecraft-banner-generator/src/minecraft.ttf';
+        if (file_exists($vendorFont)) {
+            return $vendorFont;
+        }
+        return self::getFontFile();
+    }
+
     public static function getEmojiDir() : string {
         if (!empty($GLOBALS['config']['banner_emojis_path']) && is_dir($GLOBALS['config']['banner_emojis_path'])) {
             return rtrim($GLOBALS['config']['banner_emojis_path'], '/');
@@ -144,7 +158,8 @@ class General
         int|string $max_players = -1,
         $favicon = null,
         $background = null,
-        float|int $ping = 0
+        float|int $ping = 0,
+        bool $useCustomMotdFont = true
     ) {
         $canvas = self::getBackgroundCanvas(self::WIDTH, self::HEIGHT, $background);
         if ($favicon === null) {
@@ -159,14 +174,18 @@ class General
         // 矩形文繞圖：固定文字區塊起始 X 座標，與 Favicon 保持清晰矩形間距
         $startX = self::PADDING + self::FAVICON_SIZE + 9;
         $fontFile = self::getFontFile();
+        $mcFontFile = self::getMinecraftFontFile();
 
         // 1. 伺服器標題（位址）
+        $titleFont = preg_match('/[^\x20-\x7E]/', $address) ? $fontFile : $mcFontFile;
         $white = imagecolorallocate($canvas, 255, 255, 255);
         $titleY = $favicon_posY + self::PADDING * 2 + self::TITLE_SIZE;
-        imagettftext($canvas, self::TITLE_SIZE, 0, $startX, $titleY, $white, $fontFile, trim($address));
+        imagettftext($canvas, self::TITLE_SIZE, 0, $startX, $titleY, $white, $titleFont, trim($address));
 
         // 2. MOTD（文字、顏色代碼與彩色 Emoji）
-        self::renderMotd($canvas, $motd, $startX, 50, $fontFile);
+        // 若啟用 useCustomMotdFont 則使用自訂字體（支援中文/Emoji 的方舟像素）；否則使用 Minecraft 原版字體
+        $motdFont = $useCustomMotdFont ? $fontFile : $mcFontFile;
+        self::renderMotd($canvas, $motd, $startX, 50, $motdFont);
 
         // 3. Ping 圖示
         $pingImg = self::getPingImage($ping);
@@ -176,18 +195,18 @@ class General
             imagedestroy($pingImg);
         }
 
-        // 4. 線上玩家人數與 Ping 毫秒
+        // 4. 線上玩家人數與 Ping 毫秒（使用 Minecraft 經典英數字體）
         $pingSuffix = '';
         if (is_numeric($max_players) && $ping > 0) {
             $pingSuffix = '    ' . round($ping, 0) . 'ms';
         }
         $playersText = $players . ' / ' . $max_players . $pingSuffix;
 
-        $box = imagettfbbox(self::PLAYERS_SIZE, 0, $fontFile, $playersText);
+        $box = imagettfbbox(self::PLAYERS_SIZE, 0, $mcFontFile, $playersText);
         $text_width = abs($box[4] - $box[0]);
         $posY = $favicon_posY + (self::PING_HEIGHT / 2) + self::PLAYERS_SIZE / 2;
         $posX = $ping_posX - $text_width - self::PADDING / 2;
-        imagettftext($canvas, self::PLAYERS_SIZE, 0, $posX, $posY, $white, $fontFile, $playersText);
+        imagettftext($canvas, self::PLAYERS_SIZE, 0, $posX, $posY, $white, $mcFontFile, $playersText);
 
         return $canvas;
     }

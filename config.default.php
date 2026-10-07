@@ -73,7 +73,7 @@ return [
     ],
 
     // 橫幅 (Banner) 設定
-    'banner_font' => __DIR__ . '/res/fonts/ark-pixel-12px-proportional-zh_tw.otf',
+    'banner_font' => __DIR__ . '/res/fonts/ark-pixel-12px-proportional-zh_tw.otf', // MOTD 中文字體
     'banner_emojis_path' => __DIR__ . '/res/emojis',
 
     'debug' => false
