@@ -155,18 +155,20 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
     $isShowPlayer = !empty($queryParams['players']) ? true : false;
     $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
 
-    function outputBanner($title, $subtitle, $player_online, $player_max, $ping) {
-        $output_title = ' '.$title;
-        $output_ping_string = '';
-        if (strlen($output_title) < 30) {
-            $output_ping_string = '    '.round($ping, 0).'ms';
-        }
+    if (!function_exists('outputBanner')) {
+        function outputBanner($title, $subtitle, $player_online, $player_max, $ping, $favicon = null) {
+            $output_title = ' '.$title;
+            $output_ping_string = '';
+            if (strlen($output_title) < 30) {
+                $output_ping_string = '    '.round($ping, 0).'ms';
+            }
 
-        return ServerBanner::server($output_title,
-        '  '.$subtitle
-        , $player_online, $player_max
-            .$output_ping_string
-        , NULL, NULL, $ping);
+            return ServerBanner::server($output_title,
+            '  '.$subtitle
+            , $player_online, $player_max
+                .$output_ping_string
+            , $favicon, NULL, $ping);
+        }
     }
 
     $server = new Server($serverId);
@@ -182,11 +184,15 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
             }
             $name = 'Online:  '.$playersStr;
         } else {
-            $name = $server->getName();
+            $name = $server->getDescription();
+            if (empty($name)) {
+                $name = $server->getName() ?? '';
+            }
         }
 
         $onlinePlayersCount = $server->getOnlinePlayersCount();
         $maxPlayersCount = $server->getMaxPlayersCount();
+        $favicon = $server->getFaviconImage();
 
         $endPing = microtime(true);
         $durationPing = ($endPing - $startPing) * 1000;
@@ -194,7 +200,7 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
         //tell the browser that we will send the raw image without HTML
         header('Content-type: image/png');
 
-        $banner = outputBanner($hostString, $name, $onlinePlayersCount, $maxPlayersCount, $durationPing);
+        $banner = outputBanner($hostString, $name, $onlinePlayersCount, $maxPlayersCount, $durationPing, $favicon);
         imagepng($banner);
     }
     catch( MinecraftPingException $e )
@@ -207,7 +213,7 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
         //tell the browser that we will send the raw image without HTML
         header('Content-type: image/png');
 
-        $banner = outputBanner($hostString, $e->getMessage(), $onlinePlayersCount, $maxPlayersCount, -1);
+        $banner = outputBanner($hostString, $e->getMessage(), $onlinePlayersCount ?? 0, $maxPlayersCount ?? 0, -1);
         imagepng($banner);
 
     }
