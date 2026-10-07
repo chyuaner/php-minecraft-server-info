@@ -179,7 +179,7 @@ final class Server
         }
 
         $desc = $fetchedOutput['description'];
-        $parsed = $this->parseChatComponent($desc);
+        $parsed = General::parseChatComponent($desc);
         if ($parsed === '') {
             return $this->name ?? '';
         }
@@ -197,141 +197,11 @@ final class Server
     }
 
     public function parseChatComponent(mixed $component) : string {
-        if (is_string($component)) {
-            return $this->normalizeColorCodes($component);
-        }
-
-        if (!is_array($component)) {
-            return '';
-        }
-
-        if (array_is_list($component)) {
-            $result = '';
-            foreach ($component as $item) {
-                $result .= $this->parseChatComponent($item);
-            }
-            return $result;
-        }
-
-        $result = '';
-
-        if (!empty($component['color'])) {
-            $color = strtolower($component['color']);
-            $colorMap = [
-                'black' => '§0',
-                'dark_blue' => '§1',
-                'dark_green' => '§2',
-                'dark_aqua' => '§3',
-                'dark_red' => '§4',
-                'dark_purple' => '§5',
-                'gold' => '§6',
-                'gray' => '§7',
-                'dark_gray' => '§8',
-                'blue' => '§9',
-                'green' => '§a',
-                'aqua' => '§b',
-                'red' => '§c',
-                'light_purple' => '§d',
-                'yellow' => '§e',
-                'white' => '§f',
-                'reset' => '§f',
-            ];
-
-            if (isset($colorMap[$color])) {
-                $result .= $colorMap[$color];
-            } elseif (str_starts_with($color, '#')) {
-                $result .= $this->hexToMinecraftColor($color);
-            }
-        }
-
-        $styleMap = [
-            'bold' => '§l',
-            'italic' => '§o',
-            'underlined' => '§n',
-            'strikethrough' => '§m',
-            'obfuscated' => '§k',
-        ];
-        foreach ($styleMap as $style => $code) {
-            if (!empty($component[$style])) {
-                $result .= $code;
-            }
-        }
-
-        if (isset($component['text']) && is_string($component['text'])) {
-            $result .= $this->normalizeColorCodes($component['text']);
-        } elseif (isset($component['translate']) && is_string($component['translate'])) {
-            $result .= $component['translate'];
-        }
-
-        if (!empty($component['extra']) && is_array($component['extra'])) {
-            foreach ($component['extra'] as $extra) {
-                $result .= $this->parseChatComponent($extra);
-            }
-        }
-
-        return $result;
+        return General::parseChatComponent($component);
     }
 
     public function normalizeColorCodes(string $text) : string {
-        $text = preg_replace_callback('/§x(?:§[0-9a-fA-F]){6}/i', function($matches) {
-            $hex = str_ireplace(['§x', '§'], '', $matches[0]);
-            return $this->hexToMinecraftColor($hex);
-        }, $text);
-
-        $text = preg_replace_callback('/§([0-9a-fk-orA-FK-OR])/', function($matches) {
-            $code = strtolower($matches[1]);
-            if ($code === 'r') {
-                return '§f';
-            }
-            return '§' . $code;
-        }, $text);
-
-        return $text;
-    }
-
-    private function hexToMinecraftColor(string $hex) : string {
-        $hex = ltrim($hex, '#');
-        if (strlen($hex) === 3) {
-            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-        }
-        if (strlen($hex) !== 6) {
-            return '§f';
-        }
-
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-
-        $palette = [
-            '0' => [0, 0, 0],
-            '1' => [0, 0, 170],
-            '2' => [0, 170, 0],
-            '3' => [0, 170, 170],
-            '4' => [170, 0, 0],
-            '5' => [170, 0, 170],
-            '6' => [255, 170, 0],
-            '7' => [170, 170, 170],
-            '8' => [85, 85, 85],
-            '9' => [85, 85, 255],
-            'a' => [85, 255, 85],
-            'b' => [85, 255, 255],
-            'c' => [255, 85, 85],
-            'd' => [255, 85, 255],
-            'e' => [255, 255, 85],
-            'f' => [255, 255, 255],
-        ];
-
-        $minDist = PHP_INT_MAX;
-        $closest = 'f';
-        foreach ($palette as $code => $rgb) {
-            $dist = ($r - $rgb[0]) ** 2 + ($g - $rgb[1]) ** 2 + ($b - $rgb[2]) ** 2;
-            if ($dist < $minDist) {
-                $minDist = $dist;
-                $closest = $code;
-            }
-        }
-
-        return '§' . $closest;
+        return General::normalizeColorCodes($text);
     }
 
     public function getFavicon() : ?string {
@@ -385,5 +255,41 @@ final class Server
         }
 
         return $image;
+    }
+
+    public function renderBanner(bool $isShowPlayer = false, float|int $ping = 0, $background = null, ?string $overrideSubtitle = null) : \GdImage {
+        $hostString = $this->getPublicHostString();
+        if ($overrideSubtitle !== null) {
+            $subtitle = $overrideSubtitle;
+        } elseif ($isShowPlayer) {
+            $playersStr = implode(', ', $this->getPlayersName());
+            if (empty($playersStr)) {
+                $playersStr = 'no player';
+            }
+            $subtitle = 'Online:  ' . $playersStr;
+        } else {
+            $subtitle = $this->getDescription();
+            if (empty($subtitle)) {
+                $subtitle = $this->getName() ?? '';
+            }
+        }
+
+        $onlinePlayersCount = $this->getOnlinePlayersCount();
+        $maxPlayersCount = $this->getMaxPlayersCount();
+        $favicon = $this->getFaviconImage();
+
+        return General::server($hostString, $subtitle, $onlinePlayersCount, $maxPlayersCount, $favicon, $background, $ping);
+    }
+
+    public static function serverBanner(
+        string $address,
+        string $motd = "§cOffline Server",
+        int|string $players = -1,
+        int|string $max_players = -1,
+        $favicon = null,
+        $background = null,
+        float|int $ping = 0
+    ) : \GdImage {
+        return General::server($address, $motd, $players, $max_players, $favicon, $background, $ping);
     }
 }

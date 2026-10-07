@@ -5,7 +5,6 @@
 
 use App\ResponseFormatter;
 use McModUtils\Server;
-use MinecraftBanner\ServerBanner;
 use xPaw\MinecraftPingException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -155,65 +154,29 @@ $app->get('/banner[/{serverId}]', function (Request $request, Response $response
     $isShowPlayer = !empty($queryParams['players']) ? true : false;
     $serverId = !empty($args['serverId']) ? $args['serverId'] : null;
 
-    if (!function_exists('outputBanner')) {
-        function outputBanner($title, $subtitle, $player_online, $player_max, $ping, $favicon = null) {
-            $output_title = ' '.$title;
-            $output_ping_string = '';
-            if (strlen($output_title) < 30) {
-                $output_ping_string = '    '.round($ping, 0).'ms';
-            }
-
-            return ServerBanner::server($output_title,
-            '  '.$subtitle
-            , $player_online, $player_max
-                .$output_ping_string
-            , $favicon, NULL, $ping);
-        }
-    }
-
     $server = new Server($serverId);
 
     try
     {
         $startPing = microtime(true);
-        $hostString = $server->getPublicHostString();
-        if ($isShowPlayer) {
-            $playersStr = implode(', ', $server->getPlayersName());
-            if (empty($playersStr)) {
-                $playersStr = 'no player';
-            }
-            $name = 'Online:  '.$playersStr;
-        } else {
-            $name = $server->getDescription();
-            if (empty($name)) {
-                $name = $server->getName() ?? '';
-            }
-        }
-
-        $onlinePlayersCount = $server->getOnlinePlayersCount();
-        $maxPlayersCount = $server->getMaxPlayersCount();
-        $favicon = $server->getFaviconImage();
-
+        $server->outputPing();
         $endPing = microtime(true);
         $durationPing = ($endPing - $startPing) * 1000;
 
         //tell the browser that we will send the raw image without HTML
         header('Content-type: image/png');
 
-        $banner = outputBanner($hostString, $name, $onlinePlayersCount, $maxPlayersCount, $durationPing, $favicon);
+        $banner = $server->renderBanner($isShowPlayer, $durationPing);
         imagepng($banner);
     }
     catch( MinecraftPingException $e )
     {
         http_response_code(502);
-        $hostString = $server->getPublicHostString();
-        $endPing = microtime(true);
-        $durationPing = ($endPing - $startPing) * 1000;
 
         //tell the browser that we will send the raw image without HTML
         header('Content-type: image/png');
 
-        $banner = outputBanner($hostString, $e->getMessage(), $onlinePlayersCount ?? 0, $maxPlayersCount ?? 0, -1);
+        $banner = $server->renderBanner(false, -1, null, $e->getMessage());
         imagepng($banner);
 
     }
