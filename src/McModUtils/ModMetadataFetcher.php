@@ -176,6 +176,8 @@ class ModMetadataFetcher
             $description = $mod->getDescription();
             $remoteDownloadUrl = null;
             $remoteIconUrl = null;
+            $versionNumber = null;
+            $displayName = null;
             $modrinthUrl = null;
             $curseforgeUrl = null;
             $sourceUrl = null;
@@ -186,6 +188,8 @@ class ModMetadataFetcher
             if ($modrinthVersion && $modrinthProject) {
                 $source = 'modrinth';
                 $isCustom = false;
+                $versionNumber = $modrinthVersion['version_number'] ?? null;
+                $displayName = $modrinthProject['title'] ?? null;
                 $summary = !empty($modrinthProject['description']) ? trim($modrinthProject['description']) : $mod->getDescription();
                 $description = $summary;
                 $remoteIconUrl = $modrinthProject['icon_url'] ?? null;
@@ -251,6 +255,8 @@ class ModMetadataFetcher
                 'cached_at' => $now,
                 'source' => $source,
                 'is_custom' => $isCustom,
+                'version_number' => $versionNumber,
+                'display_name' => $displayName,
                 'summary' => $summary,
                 'description' => $description,
                 'download_url' => $remoteDownloadUrl,

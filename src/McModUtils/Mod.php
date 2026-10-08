@@ -43,6 +43,14 @@ class Mod {
         return file_exists($this->modFilePath);
     }
 
+    private function isPlaceholder(?string $val): bool {
+        if ($val === null || $val === '') {
+            return true;
+        }
+        $trimmed = trim($val);
+        return str_starts_with($trimmed, '${') && str_ends_with($trimmed, '}');
+    }
+
     public function parse(): bool {
         $isSuccess = false;
 
@@ -53,15 +61,17 @@ class Mod {
 
         $zip = new \ZipArchive();
         if ($zip->open($this->modFilePath) === true) {
+            $manifestRaw = $zip->getFromName('META-INF/MANIFEST.MF');
+            $manifestData = ($manifestRaw !== false) ? $this->parseManifest($manifestRaw) : [];
 
-            // NeoForge
+            // 1. NeoForge (優先)
             $neoforgeTomlRaw = $zip->getFromName('META-INF/neoforge.mods.toml');
             if ($neoforgeTomlRaw !== false) {
                 $parseResult = $this->parseNeoforgeToml($neoforgeTomlRaw);
                 $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
             }
 
-            // Forge (舊)
+            // 2. Forge (舊)
             $forgeTomlRaw = $zip->getFromName('META-INF/mods.toml');
             if ($forgeTomlRaw !== false) {
                 // Forge與NeoForge幾乎相同，可沿用同一個解析器
@@ -69,18 +79,52 @@ class Mod {
                 $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
             }
 
-            // Fabric
+            // 3. Fabric
             $fabricJsonRaw = $zip->getFromName('fabric.mod.json');
             if ($fabricJsonRaw !== false) {
                 $parseResult = $this->parseFabricJson($fabricJsonRaw);
                 $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
             }
 
+            // 4. Quilt
+            $quiltJsonRaw = $zip->getFromName('quilt.mod.json');
+            if ($quiltJsonRaw !== false) {
+                $parseResult = $this->parseFabricJson($quiltJsonRaw);
+                $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
+            }
+
+            // 5. 若根目錄未發現模組定義，探測 Jar-in-Jar (JiJ / META-INF/jarjar)
+            if (empty($this->modId) || empty($this->name)) {
+                $this->detectJarInJar($zip);
+            }
+
+            // 6. 應用 MANIFEST.MF 資訊 (補全版號或作者)
+            if (!empty($manifestData)) {
+                if (empty($this->version) || $this->isPlaceholder($this->version)) {
+                    if (!empty($manifestData['version']) && !$this->isPlaceholder($manifestData['version'])) {
+                        $this->version = $manifestData['version'];
+                        $isSuccess = true;
+                    }
+                }
+                if (empty($this->name) || $this->isPlaceholder($this->name)) {
+                    if (!empty($manifestData['name']) && !$this->isPlaceholder($manifestData['name'])) {
+                        $this->name = $manifestData['name'];
+                        $isSuccess = true;
+                    }
+                }
+                if (empty($this->authors) || (isset($this->authors[0]) && $this->isPlaceholder($this->authors[0]))) {
+                    if (!empty($manifestData['authors'])) {
+                        $this->authors = $manifestData['authors'];
+                        $isSuccess = true;
+                    }
+                }
+            }
+
             $zip->close();
         }
 
-        // fallback: 檔名解析
-        if (empty($this->name) || empty($this->version)) {
+        // fallback: 檔名解析 (補足名稱或版號)
+        if (empty($this->name) || $this->isPlaceholder($this->name) || empty($this->version) || $this->isPlaceholder($this->version)) {
             $parseResult = $this->parseFilename($this->getFileName());
             $isSuccess = $this->applyParseResult($parseResult) || $isSuccess;
         }
@@ -88,53 +132,134 @@ class Mod {
         return $isSuccess;
     }
 
+    private function detectJarInJar(\ZipArchive $zip): void {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (str_starts_with($name, 'META-INF/jarjar/') && str_ends_with($name, '.jar')) {
+                $innerData = $zip->getFromIndex($i);
+                if ($innerData !== false) {
+                    $tmp = tempnam(sys_get_temp_dir(), 'jij_');
+                    file_put_contents($tmp, $innerData);
+                    $innerZip = new \ZipArchive();
+                    if ($innerZip->open($tmp) === true) {
+                        $neo = $innerZip->getFromName('META-INF/neoforge.mods.toml');
+                        if ($neo !== false) {
+                            $res = $this->parseNeoforgeToml($neo);
+                            $this->applyParseResult($res);
+                        } else {
+                            $forge = $innerZip->getFromName('META-INF/mods.toml');
+                            if ($forge !== false) {
+                                $res = $this->parseNeoforgeToml($forge);
+                                $this->applyParseResult($res);
+                            }
+                        }
+                        $innerZip->close();
+                    }
+                    @unlink($tmp);
+                    if (!empty($this->name) && !empty($this->modId) && !$this->isPlaceholder($this->name)) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private function parseManifest(string $raw): array {
+        $result = [];
+        $lines = preg_split("/\r\n|\n|\r/", $raw);
+        $manifest = [];
+        $currentKey = null;
+        foreach ($lines as $line) {
+            if (str_starts_with($line, " ") && $currentKey !== null) {
+                $manifest[$currentKey] .= trim($line);
+            } elseif (str_contains($line, ":")) {
+                [$key, $val] = explode(":", $line, 2);
+                $currentKey = trim($key);
+                $manifest[$currentKey] = trim($val);
+            }
+        }
+
+        if (!empty($manifest['Implementation-Version']) && !$this->isPlaceholder($manifest['Implementation-Version'])) {
+            $result['version'] = trim($manifest['Implementation-Version']);
+        }
+        if (!empty($manifest['Implementation-Title']) && !$this->isPlaceholder($manifest['Implementation-Title'])) {
+            $result['name'] = trim($manifest['Implementation-Title']);
+        } elseif (!empty($manifest['Specification-Title']) && !$this->isPlaceholder($manifest['Specification-Title'])) {
+            $result['name'] = trim($manifest['Specification-Title']);
+        }
+        if (!empty($manifest['Implementation-Vendor']) && !$this->isPlaceholder($manifest['Implementation-Vendor'])) {
+            $result['authors'] = [trim($manifest['Implementation-Vendor'])];
+        } elseif (!empty($manifest['Specification-Vendor']) && !$this->isPlaceholder($manifest['Specification-Vendor'])) {
+            $result['authors'] = [trim($manifest['Specification-Vendor'])];
+        }
+
+        return $result;
+    }
+
     private function applyParseResult(array $parseResult): bool {
         $changed = false;
-        if (!empty($parseResult['name'])) {
-            $this->name = $parseResult['name'];
-            $changed = true;
+        if (!empty($parseResult['name']) && !$this->isPlaceholder($parseResult['name'])) {
+            if (empty($this->name) || $this->isPlaceholder($this->name)) {
+                $this->name = $parseResult['name'];
+                $changed = true;
+            }
         }
-        if (!empty($parseResult['version'])) {
-            $this->version = $parseResult['version'];
-            $changed = true;
+        if (!empty($parseResult['version']) && !$this->isPlaceholder($parseResult['version'])) {
+            if (empty($this->version) || $this->isPlaceholder($this->version)) {
+                $this->version = $parseResult['version'];
+                $changed = true;
+            }
         }
-        if (!empty($parseResult['modId'])) {
-            $this->modId = $parseResult['modId'];
-            $changed = true;
+        if (!empty($parseResult['modId']) && !$this->isPlaceholder($parseResult['modId'])) {
+            if (empty($this->modId) || $this->isPlaceholder($this->modId)) {
+                $this->modId = $parseResult['modId'];
+                $changed = true;
+            }
         }
-        if (!empty($parseResult['description'])) {
-            $this->description = $parseResult['description'];
-            $changed = true;
+        if (!empty($parseResult['description']) && !$this->isPlaceholder($parseResult['description'])) {
+            if (empty($this->description) || $this->isPlaceholder($this->description)) {
+                $this->description = $parseResult['description'];
+                $changed = true;
+            }
         }
-        if (!empty($parseResult['logoFile'])) {
-            $this->logoFile = $parseResult['logoFile'];
-            $changed = true;
+        if (!empty($parseResult['logoFile']) && !$this->isPlaceholder($parseResult['logoFile'])) {
+            if (empty($this->logoFile) || $this->isPlaceholder($this->logoFile)) {
+                $this->logoFile = $parseResult['logoFile'];
+                $changed = true;
+            }
         }
-        if (!empty($parseResult['displayURL'])) {
-            $this->displayURL = $parseResult['displayURL'];
-            $changed = true;
+        if (!empty($parseResult['displayURL']) && !$this->isPlaceholder($parseResult['displayURL'])) {
+            if (empty($this->displayURL) || $this->isPlaceholder($this->displayURL)) {
+                $this->displayURL = $parseResult['displayURL'];
+                $changed = true;
+            }
         }
         if (!empty($parseResult['authors'])) {
             $rawAuthors = $parseResult['authors'];
-
+            $authors = [];
             if (is_array($rawAuthors)) {
-                // 展開陣列中的所有元素（可能是 "aaa, bbb" 或單獨的 "ccc"）
-                $authors = [];
                 foreach ($rawAuthors as $item) {
-                    // 確保是字串才分割
-                    if (is_string($item)) {
+                    if (is_string($item) && !$this->isPlaceholder($item)) {
                         $parts = array_map('trim', explode(',', $item));
-                        $authors = array_merge($authors, $parts);
+                        foreach ($parts as $p) {
+                            if (!$this->isPlaceholder($p) && $p !== '') {
+                                $authors[] = $p;
+                            }
+                        }
                     }
                 }
-            } elseif (is_string($rawAuthors)) {
-                $authors = array_map('trim', explode(',', $rawAuthors));
-            } else {
-                $authors = [];
+            } elseif (is_string($rawAuthors) && !$this->isPlaceholder($rawAuthors)) {
+                $parts = array_map('trim', explode(',', $rawAuthors));
+                foreach ($parts as $p) {
+                    if (!$this->isPlaceholder($p) && $p !== '') {
+                        $authors[] = $p;
+                    }
+                }
             }
-
-            $this->authors = $authors;
-            $changed = true;
+            if (!empty($authors) && (empty($this->authors) || (isset($this->authors[0]) && $this->isPlaceholder($this->authors[0])))) {
+                $this->authors = $authors;
+                $changed = true;
+            }
         }
         return $changed;
     }
@@ -164,17 +289,21 @@ class Mod {
 
     private function parseNeoforgeToml($raw) : array {
         $result = [];
-        // 有找到 /META-INF/neoforge.mods.toml 並解析成功
         if (!empty($raw)) {
             $tomlRaw = $raw;
-            if (preg_match('/displayName\s*=\s*"([^"]+)"/', $tomlRaw, $m)) {
-                $result['name'] = $m[1];
+            if (preg_match('/(?:displayName|name)\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
+                $result['name'] = trim($m[1]);
             }
-            if (preg_match('/version\s*=\s*"([^"]+)"/', $tomlRaw, $m)) {
-                $result['version'] = $m[1];
+            if (preg_match('/version\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
+                $result['version'] = trim($m[1]);
             }
-            if (preg_match('/authors\s*=\s*"([^"]+)"/', $tomlRaw, $m)) {
+            if (preg_match('/authors\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
                 $result['authors'] = [trim($m[1])];
+            } elseif (preg_match('/authors\s*=\s*\[([^\]]+)\]/', $tomlRaw, $m)) {
+                preg_match_all('/["\']([^"\']+)["\']/', $m[1], $authorMatches);
+                if (!empty($authorMatches[1])) {
+                    $result['authors'] = $authorMatches[1];
+                }
             }
             if (preg_match('/modId\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
                 $result['modId'] = trim($m[1]);
@@ -197,17 +326,27 @@ class Mod {
         $result = [];
 
         $basename = basename($filename, '.jar');
-        $basename = preg_replace('/^\[[^\]]+\]\s*/u', '', $basename); // 去除前綴標籤
+        // 去除 [前綴標籤] 及緊鄰的 +, -, _, 空格等符號
+        $basename = preg_replace('/^\[[^\]]+\]\s*[\+\-_.]*\s*/u', '', $basename);
 
         $modName = $basename;
         $version = null;
 
-        if (preg_match('/^(.+?)-((?:neoforge|forge|fabric)[\w.\+\-]*)$/i', $basename, $m)) {
+        // 去除末尾的 loader/環境後綴 (例如 -forge, -neoforge, -fabric, -mc1.21.1)
+        if (preg_match('/^(.+?)[-_\s]+((?:neoforge|forge|fabric|quilt)[\w.\+\-]*)$/i', $basename, $m)) {
             $modName = $m[1];
             $version = $m[2];
-        } elseif (preg_match('/^(.+?)-(\d[\w.\+\-]*)$/', $basename, $m)) {
+        } elseif (preg_match('/^(.+?)[-_\s]+v?(\d[\w.\+\-]*)$/i', $basename, $m)) {
             $modName = $m[1];
             $version = $m[2];
+        }
+
+        // 清理 modName 首尾符號
+        $modName = trim($modName, "+-_ ");
+
+        // 若 modName 結尾仍有 loader/MC 版本標籤，例如 "appleskin-neoforge-mc1.21" -> "appleskin"
+        if (preg_match('/^(.+?)[-_\s]+(?:neoforge|forge|fabric|quilt|mc\d[\w.]*)/i', $modName, $sub)) {
+            $modName = trim($sub[1], "+-_ ");
         }
 
         if (!empty($modName)) {
@@ -221,17 +360,17 @@ class Mod {
     }
 
     public function getModId() : string {
-        if (empty($this->modId)) {
+        if (empty($this->modId) || $this->isPlaceholder($this->modId)) {
             $this->parse();
         }
-        return $this->modId;
+        return $this->isPlaceholder($this->modId) ? '' : (string) $this->modId;
     }
 
     public function getDescription() : string {
-        if (empty($this->description)) {
+        if (empty($this->description) || $this->isPlaceholder($this->description)) {
             $this->parse();
         }
-        return $this->description;
+        return $this->isPlaceholder($this->description) ? '' : (string) $this->description;
     }
 
     public function getLogoFile() : string {
@@ -327,6 +466,34 @@ class Mod {
                 break;
             }
         }
+
+        if ($iconData === false) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (str_starts_with($name, 'META-INF/jarjar/') && str_ends_with($name, '.jar')) {
+                    $innerData = $zip->getFromIndex($i);
+                    if ($innerData !== false) {
+                        $tmp = tempnam(sys_get_temp_dir(), 'jij_icon_');
+                        file_put_contents($tmp, $innerData);
+                        $innerZip = new \ZipArchive();
+                        if ($innerZip->open($tmp) === true) {
+                            foreach ($logoFileCandidates as $candidate) {
+                                $data = $innerZip->getFromName($candidate);
+                                if ($data !== false && strlen($data) > 0) {
+                                    $iconData = $data;
+                                    break;
+                                }
+                            }
+                            $innerZip->close();
+                        }
+                        @unlink($tmp);
+                        if ($iconData !== false) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         $zip->close();
 
         if ($iconData !== false) {
@@ -341,17 +508,23 @@ class Mod {
     }
 
     public function getName() : string {
-        if (empty($this->name)) {
+        if (empty($this->name) || $this->isPlaceholder($this->name)) {
             $this->parse();
         }
-        return $this->name;
+        if ((empty($this->name) || $this->isPlaceholder($this->name)) && !empty($this->extra['display_name'])) {
+            return (string) $this->extra['display_name'];
+        }
+        return $this->isPlaceholder($this->name) ? $this->getFileName() : (string) $this->name;
     }
 
     public function getVersion() : string {
-        if (empty($this->version)) {
+        if (empty($this->version) || $this->isPlaceholder($this->version)) {
             $this->parse();
         }
-        return $this->version;
+        if ((empty($this->version) || $this->isPlaceholder($this->version)) && !empty($this->extra['version_number'])) {
+            return (string) $this->extra['version_number'];
+        }
+        return $this->isPlaceholder($this->version) ? '' : (string) $this->version;
     }
 
     public function getAuthors() : array {
