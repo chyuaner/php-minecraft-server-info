@@ -143,7 +143,40 @@ sudo systemctl restart php8.4-fpm.service
 * sudo git config --system --get-all safe.directory
 * sudo systemctl start webhook
 * sudo systemctl enable webhook
-* sudo journalctl -u webhook.service -f
+## 模組簡介與圖標同步 (CLI & Cron)
+
+為了避免日常 API 請求每次調用外部 Modrinth 或 CurseForge API 造成網路延遲或 Rate Limit，本專案提供專屬的 CLI 批次維護腳本，可預先向 Modrinth / CurseForge 批次匹配 SHA-1、串流下載高清圖標至本地 `public/static/mod_icons/`，並寫入永久快取 `public/static/mods_metadata_cache.json`。
+
+### 指令用法
+
+```bash
+# 1. 常規增量更新（跳過有效快取，預設 TTL 14 天）
+php scripts/sync_mods_metadata.php
+
+# 2. 強制全量重新查詢與下載圖標（忽略既有快取）
+php scripts/sync_mods_metadata.php --force
+
+# 3. 指定快取過期天數（例如刷新快取超過 7 天的模組）
+php scripts/sync_mods_metadata.php --ttl=7
+
+# 4. 指定特定模組分類
+php scripts/sync_mods_metadata.php --type=common,client
+
+# 5. 靜音模式（僅在發生錯誤時輸出，適合 Crontab 排程）
+php scripts/sync_mods_metadata.php --quiet
+```
+
+### Crontab 自動排程範例
+
+建議在伺服器設置 Crontab 定期排程（例如每週日清晨 04:00 自動執行一次增量更新）：
+
+```bash
+# 開啟 crontab 編輯
+crontab -e
+
+# 加入以下排程（刷新超過 14 天的資料）
+0 4 * * 0 /usr/bin/php /opt/minecraft/php-minecraft-server-info/scripts/sync_mods_metadata.php --ttl=14 --quiet >> /opt/minecraft/php-minecraft-server-info/cron_sync.log 2>&1
+```
 
 ## 效能測試
 

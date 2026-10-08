@@ -11,6 +11,14 @@ class Mod {
     protected $md5 = '';
     protected $sha1 = '';
 
+    protected $modId = '';
+    protected $description = '';
+    protected $logoFile = '';
+    protected $displayURL = '';
+    protected $fileLength = null;
+    protected $fileDate = null;
+    protected $extra = [];
+
     private function parseFileInput(string $raw) : string {
 
         // 若輸入的只有單檔檔名
@@ -37,6 +45,11 @@ class Mod {
 
     public function parse(): bool {
         $isSuccess = false;
+
+        if (file_exists($this->modFilePath)) {
+            $this->fileLength = filesize($this->modFilePath);
+            $this->fileDate = (new \DateTime())->setTimestamp(filemtime($this->modFilePath))->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
+        }
 
         $zip = new \ZipArchive();
         if ($zip->open($this->modFilePath) === true) {
@@ -85,6 +98,22 @@ class Mod {
             $this->version = $parseResult['version'];
             $changed = true;
         }
+        if (!empty($parseResult['modId'])) {
+            $this->modId = $parseResult['modId'];
+            $changed = true;
+        }
+        if (!empty($parseResult['description'])) {
+            $this->description = $parseResult['description'];
+            $changed = true;
+        }
+        if (!empty($parseResult['logoFile'])) {
+            $this->logoFile = $parseResult['logoFile'];
+            $changed = true;
+        }
+        if (!empty($parseResult['displayURL'])) {
+            $this->displayURL = $parseResult['displayURL'];
+            $changed = true;
+        }
         if (!empty($parseResult['authors'])) {
             $rawAuthors = $parseResult['authors'];
 
@@ -113,9 +142,23 @@ class Mod {
     private function parseFabricJson($raw) : array {
         $result = [];
         $jsonData = json_decode($raw, true);
-        $result['name'] = $jsonData['name'] ?? ($jsonData['id'] ?? null);
-        $result['version'] = $jsonData['version'] ?? null;
-        $result['authors'] = is_array($jsonData['authors']) ? $jsonData['authors'] : [$jsonData['authors'] ?? []];
+        if (is_array($jsonData)) {
+            $result['name'] = $jsonData['name'] ?? ($jsonData['id'] ?? null);
+            $result['modId'] = $jsonData['id'] ?? null;
+            $result['version'] = $jsonData['version'] ?? null;
+            $result['authors'] = is_array($jsonData['authors'] ?? null) ? $jsonData['authors'] : [$jsonData['authors'] ?? []];
+            if (!empty($jsonData['description'])) {
+                $result['description'] = is_string($jsonData['description']) ? trim($jsonData['description']) : '';
+            }
+            if (!empty($jsonData['icon'])) {
+                $result['logoFile'] = is_string($jsonData['icon']) ? trim($jsonData['icon']) : '';
+            }
+            if (!empty($jsonData['contact']['homepage'])) {
+                $result['displayURL'] = trim($jsonData['contact']['homepage']);
+            } elseif (!empty($jsonData['contact']['sources'])) {
+                $result['displayURL'] = trim($jsonData['contact']['sources']);
+            }
+        }
         return $result;
     }
 
@@ -132,6 +175,19 @@ class Mod {
             }
             if (preg_match('/authors\s*=\s*"([^"]+)"/', $tomlRaw, $m)) {
                 $result['authors'] = [trim($m[1])];
+            }
+            if (preg_match('/modId\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
+                $result['modId'] = trim($m[1]);
+            }
+            if (preg_match('/description\s*=\s*(?:(?:\'\'\'|""")(.*?)(?:\'\'\'|""")|"([^"]*)"|\'([^\']*)\')/s', $tomlRaw, $m)) {
+                $desc = $m[1] ?? ($m[2] ?? ($m[3] ?? ''));
+                $result['description'] = trim($desc);
+            }
+            if (preg_match('/logoFile\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
+                $result['logoFile'] = trim($m[1]);
+            }
+            if (preg_match('/displayURL\s*=\s*["\']([^"\']+)["\']/', $tomlRaw, $m)) {
+                $result['displayURL'] = trim($m[1]);
             }
         }
         return $result;
@@ -164,16 +220,124 @@ class Mod {
         return $result;
     }
 
+    public function getModId() : string {
+        if (empty($this->modId)) {
+            $this->parse();
+        }
+        return $this->modId;
+    }
+
+    public function getDescription() : string {
+        if (empty($this->description)) {
+            $this->parse();
+        }
+        return $this->description;
+    }
+
+    public function getLogoFile() : string {
+        if (empty($this->logoFile)) {
+            $this->parse();
+        }
+        return $this->logoFile;
+    }
+
+    public function getDisplayURL() : string {
+        if (empty($this->displayURL)) {
+            $this->parse();
+        }
+        return $this->displayURL;
+    }
+
+    public function getFileLength() : ?int {
+        if ($this->fileLength === null) {
+            $this->parse();
+        }
+        return $this->fileLength;
+    }
+
+    public function getFileDate() : ?string {
+        if ($this->fileDate === null) {
+            $this->parse();
+        }
+        return $this->fileDate;
+    }
+
+    public function setExtra(array $extra) : void {
+        $this->extra = $extra;
+    }
+
+    public function getExtra() : array {
+        return $this->extra;
+    }
+
     public function fetchExtra() : bool {
         return false;
     }
 
     public function getCacheExtra() : array {
-        return [];
+        return $this->extra;
     }
 
     public function saveCacheExtra() : bool {
         return false;
+    }
+
+    public function extractLocalIcon(string $targetDir): ?string {
+        if (!file_exists($this->modFilePath)) {
+            return null;
+        }
+        $sha1 = $this->getSha1();
+        $iconFileName = $sha1 . '_thumb.png';
+        $iconFilePath = rtrim($targetDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $iconFileName;
+
+        if (file_exists($iconFilePath) && filesize($iconFilePath) > 0) {
+            return $iconFileName;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($this->modFilePath) !== true) {
+            return null;
+        }
+
+        $logoFileCandidates = [];
+        $logoFile = $this->getLogoFile();
+        $modId = $this->getModId();
+
+        if (!empty($logoFile)) {
+            $logoFileCandidates[] = $logoFile;
+            $logoFileCandidates[] = ltrim($logoFile, '/');
+            if (!empty($modId)) {
+                $logoFileCandidates[] = 'assets/' . $modId . '/' . ltrim($logoFile, '/');
+            }
+        }
+        // Fallback default candidate paths
+        if (!empty($modId)) {
+            $logoFileCandidates[] = 'assets/' . $modId . '/icon.png';
+            $logoFileCandidates[] = 'assets/' . $modId . '/logo.png';
+            $logoFileCandidates[] = 'assets/' . $modId . '/textures/gui/icon.png';
+        }
+        $logoFileCandidates[] = 'icon.png';
+        $logoFileCandidates[] = 'logo.png';
+
+        $iconData = false;
+        foreach ($logoFileCandidates as $candidate) {
+            $data = $zip->getFromName($candidate);
+            if ($data !== false && strlen($data) > 0) {
+                $iconData = $data;
+                break;
+            }
+        }
+        $zip->close();
+
+        if ($iconData !== false) {
+            if (!is_dir($targetDir)) {
+                @mkdir($targetDir, 0755, true);
+            }
+            file_put_contents($iconFilePath, $iconData);
+            return $iconFileName;
+        }
+
+        return null;
     }
 
     public function getName() : string {
@@ -218,18 +382,23 @@ class Mod {
     }
 
     public function getBasePath() : string {
-        $modFilePath = $this->modFilePath;
+        $modFilePath = realpath($this->modFilePath) ?: $this->modFilePath;
 
-        if (!empty($GLOBALS['config']['mods_path'])
-            && str_contains($modFilePath, $GLOBALS['config']['mods_path'])) {
-            return $GLOBALS['config']['mods_path'];
+        if (!empty($GLOBALS['config']['mods_path'])) {
+            $configPath = realpath($GLOBALS['config']['mods_path']) ?: $GLOBALS['config']['mods_path'];
+            if (str_contains($modFilePath, $configPath)) {
+                return $GLOBALS['config']['mods_path'];
+            }
         }
-        elseif (!empty($GLOBALS['config']['mods'])
+
+        if (!empty($GLOBALS['config']['mods'])
             && is_array($GLOBALS['config']['mods'])) {
                 foreach ($GLOBALS['config']['mods'] as $modGroup) {
-                    if (!empty($modGroup['path']
-                    && str_contains($modFilePath, $modGroup['path']))) {
-                        return $modGroup['path'];
+                    if (!empty($modGroup['path'])) {
+                        $configPath = realpath($modGroup['path']) ?: $modGroup['path'];
+                        if (str_contains($modFilePath, $configPath)) {
+                            return $modGroup['path'];
+                        }
                     }
             }
         }
@@ -237,13 +406,16 @@ class Mod {
     }
 
     public function getConfigModsKey() : string {
-        $modFilePath = $this->modFilePath;
+        $modFilePath = realpath($this->modFilePath) ?: $this->modFilePath;
 
         if (!empty($GLOBALS['config']['mods'])
             && is_array($GLOBALS['config']['mods'])) {
                 foreach ($GLOBALS['config']['mods'] as $modConfigKey => $modGroup) {
-                    if (!empty($modGroup['path'] && str_contains($modFilePath, $modGroup['path']))) {
-                        return $modConfigKey;
+                    if (!empty($modGroup['path'])) {
+                        $configPath = realpath($modGroup['path']) ?: $modGroup['path'];
+                        if (str_contains($modFilePath, $configPath)) {
+                            return $modConfigKey;
+                        }
                     }
             }
         }
@@ -252,9 +424,9 @@ class Mod {
 
     public function getDownloadUrl() : string {
 
-        $originFullPath = $this->modFilePath;
-        $basePath = $this->getBasePath();
-        $relativePath = substr($originFullPath, strlen(realpath($basePath)) + 1);
+        $originFullPath = realpath($this->modFilePath) ?: $this->modFilePath;
+        $basePath = realpath($this->getBasePath()) ?: $this->getBasePath();
+        $relativePath = substr($originFullPath, strlen($basePath) + 1);
 
         $parts = explode('/', $relativePath);
         $encodedParts = array_map('rawurlencode', $parts); // rawurlencode 對於 URL path 更適合
@@ -278,7 +450,7 @@ class Mod {
     }
 
     function getWebsiteUrl() : string {
-        return '';
+        return $this->displayURL ?: '';
     }
 
     public function outputBasic() : array {
@@ -286,31 +458,107 @@ class Mod {
             "name" => $this->getName(),
             "sha1" => $this->getSha1(),
             "fileName" => $this->getFileName(),
-            // "filePath" => $this->modFilePath,
-            "downloadUrl" => $this->getDownloadUrl(), // CurseForge API
+            "downloadUrl" => $this->getDownloadUrl(),
             "version" => $this->getVersion(),
             "authors" => $this->getAuthors(),
         ];
     }
 
     public function output() : array {
+        $serverDownloadUrl = $this->getDownloadUrl();
+        $sha1 = $this->getSha1();
+        $md5 = $this->getMd5();
+        $extra = $this->extra;
+
+        $summary = !empty($extra['summary']) ? $extra['summary'] : $this->getDescription();
+        $description = !empty($extra['description']) ? $extra['description'] : $this->getDescription();
+
+        $source = $extra['source'] ?? 'server';
+        $isCustomMod = !empty($extra['is_custom']) || ($source === 'server');
+
+        // 智慧載點分流：若第三方 CDN 存在且非客製模組則優先導向 CDN，否則使用伺服器載點
+        $remoteDownloadUrl = $extra['download_url'] ?? null;
+        $primaryDownloadUrl = (!empty($remoteDownloadUrl) && !$isCustomMod) ? $remoteDownloadUrl : $serverDownloadUrl;
+
+        $modrinthDownloadUrl = ($source === 'modrinth' && !empty($remoteDownloadUrl)) ? $remoteDownloadUrl : null;
+        $curseForgeDownloadUrl = ($source === 'curseforge' && !empty($remoteDownloadUrl)) ? $remoteDownloadUrl : null;
+
+        // 圖標網址建構
+        $baseUrl = rtrim($GLOBALS['config']['base_url'] ?? '', '/');
+        $localIconFile = $extra['logo']['local_icon'] ?? null;
+        $localThumbFile = $extra['logo']['local_thumb'] ?? ($sha1 . '_thumb.png');
+
+        $localIconUrl = !empty($localIconFile) ? $baseUrl . '/static/mod_icons/' . $localIconFile : null;
+        $localThumbUrl = !empty($localThumbFile) && file_exists(ModMetadataFetcher::getIconsDir() . '/' . $localThumbFile)
+            ? $baseUrl . '/static/mod_icons/' . $localThumbFile
+            : null;
+
+        // 若無高清圖則使用縮圖
+        $effectiveLocalIconUrl = $localIconUrl ?: $localThumbUrl;
+
+        $modrinthIconUrl = $extra['logo']['modrinth_url'] ?? null;
+        $curseForgeIconUrl = $extra['logo']['curseforge_url'] ?? null;
+
+        $websiteUrl = $extra['links']['website_url'] ?? ($this->displayURL ?: '');
+        $modrinthUrl = $extra['links']['modrinth_url'] ?? null;
+        $curseforgeUrl = $extra['links']['curseforge_url'] ?? null;
+        $sourceUrl = $extra['links']['source_url'] ?? null;
+        $issuesUrl = $extra['links']['issues_url'] ?? null;
+        $wikiUrl = $extra['links']['wiki_url'] ?? null;
+
         return [
-            "name" => $this->getName(), // Prism Launcher
-            "authors" => $this->getAuthors(),  // Prism Launcher
-            "version" => $this->getVersion(),  // Prism Launcher
-            "filename" => $this->getFileName(),  // Prism Launcher
-            "fileName" => $this->getFileName(),  // CurseForge API
-            "sha1" => $this->getSha1(), // ModUpdater
-            "hashes" => [ // CurseForge API
-                "value" => $this->getSha1(),
-                "algo" => 1
+            // CurseForge API 對齊欄位
+            "displayName" => $this->getName(),
+            "fileName" => $this->getFileName(),
+            "fileDate" => $this->getFileDate(),
+            "fileLength" => $this->getFileLength(),
+            "downloadUrl" => $primaryDownloadUrl,
+            "hashes" => [
+                [
+                    "value" => $sha1,
+                    "algo" => 1 // SHA1
+                ],
+                [
+                    "value" => $md5,
+                    "algo" => 2 // MD5
+                ]
             ],
-            // "url" => "https://www.curseforge.com/projects/889079", // Prism Launcher
-            "download" => $this->getDownloadUrl(), // ModUpdater
-            "downloadUrl" => $this->getDownloadUrl(), // CurseForge API
-            // "websiteUrl" => "https://www.curseforge.com/minecraft/mc-mods/journey-into-the-light", // CurseForge API
-            // "fileDate" => "2019-08-24T14:15:22Z", // CurseForge API
-            // "fileLength" => 0, // CurseForge API
+            "summary" => $summary,
+            "description" => $description,
+            "logo" => [
+                "url" => $effectiveLocalIconUrl,
+                "thumbnailUrl" => $localThumbUrl,
+                "modrinthUrl" => $modrinthIconUrl,
+                "curseForgeUrl" => $curseForgeIconUrl,
+            ],
+            "links" => [
+                "websiteUrl" => $websiteUrl,
+                "downloadUrl" => $primaryDownloadUrl,
+                "serverDownloadUrl" => $serverDownloadUrl,
+                "curseforgeUrl" => $curseforgeUrl,
+                "modrinthUrl" => $modrinthUrl,
+                "sourceUrl" => $sourceUrl,
+                "issuesUrl" => $issuesUrl,
+                "wikiUrl" => $wikiUrl,
+            ],
+
+            // 智慧分流與自製模組識別
+            "serverDownloadUrl" => $serverDownloadUrl,
+            "modrinthDownloadUrl" => $modrinthDownloadUrl,
+            "curseForgeDownloadUrl" => $curseForgeDownloadUrl,
+            "downloadSource" => $source,
+            "isCustomMod" => $isCustomMod,
+            "modId" => $this->getModId(),
+
+            // 舊版與 Prism Launcher / ModUpdater 100% 向後相容欄位
+            "name" => $this->getName(),
+            "authors" => $this->getAuthors(),
+            "version" => $this->getVersion(),
+            "filename" => $this->getFileName(),
+            "sha1" => $sha1,
+            "download" => $primaryDownloadUrl,
+            "websiteUrl" => $websiteUrl,
+            "iconUrl" => $effectiveLocalIconUrl,
         ];
     }
 
@@ -318,7 +566,7 @@ class Mod {
         $itemHtml = '
         <a href="'.$this->getDownloadUrl().'">'.$this->getName().'</a>
         ['.$this->getVersion().']
-        by '.$this->getAuthors().'
+        by '.implode(', ', $this->getAuthors()).'
         ('.$this->getFileName().')
         ';
         return $itemHtml;

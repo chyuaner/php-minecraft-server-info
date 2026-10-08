@@ -5,6 +5,9 @@
 /public/static/mods.json
 /public/static/mods-*.json
 /public/static/mods-*.zip
+/public/static/mods_metadata_cache.json
+/public/static/mod_icons/*
+!/public/static/mod_icons/.gitkeep
 /public/static/folder-*.json
 /public/static/folder-*.zip
 /public/static/resourcepacks-*.json

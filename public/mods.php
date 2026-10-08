@@ -34,6 +34,7 @@ use App\ResponseFormatter;
 use McModUtils\Mod;
 use McModUtils\Mods;
 use McModUtils\Zip;
+use McModUtils\ModMetadataFetcher;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteCollectorProxy;
@@ -211,6 +212,8 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
                 $output = $modsOutput;
             }
             else {
+                ModMetadataFetcher::enrichMods($mods, force: $isForce);
+
                 $modsOutput = array_map(function ($mod) {
                     return $mod->output();
                 }, $mods);
@@ -262,6 +265,9 @@ foreach ($routerConfigMap as $modType => $modConfigKey) {
             }
 
             $mod = new Mod($modFilePath);
+            $singleList = [$mod];
+            $isForceSingle = !empty($queryParams['force']) && in_array(strtolower($queryParams['force']), ['1', 'true', 'yes'], true);
+            ModMetadataFetcher::enrichMods($singleList, force: $isForceSingle);
             $formatter = new ResponseFormatter();
             return $formatter->format($request, $mod->output());
         });
