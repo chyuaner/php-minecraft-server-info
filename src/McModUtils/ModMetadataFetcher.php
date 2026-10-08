@@ -31,9 +31,14 @@ class ModMetadataFetcher
         $file = self::getCacheFilePath();
         $dir = dirname($file);
         if (!is_dir($dir)) {
-            @mkdir($dir, 0755, true);
+            @mkdir($dir, 0775, true);
+            @chmod($dir, 0775);
         }
-        return file_put_contents($file, json_encode($cache, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !== false;
+        $res = file_put_contents($file, json_encode($cache, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !== false;
+        if ($res) {
+            @chmod($file, 0666);
+        }
+        return $res;
     }
 
     /**
@@ -406,7 +411,8 @@ class ModMetadataFetcher
     public static function downloadAndSaveIcon(string $remoteUrl, string $sha1) : ?string {
         $iconsDir = self::getIconsDir();
         if (!is_dir($iconsDir)) {
-            @mkdir($iconsDir, 0755, true);
+            @mkdir($iconsDir, 0775, true);
+            @chmod($iconsDir, 0775);
         }
 
         // 解析副檔名
@@ -436,6 +442,7 @@ class ModMetadataFetcher
         $content = @file_get_contents($remoteUrl, false, $context);
         if ($content !== false && strlen($content) > 0) {
             file_put_contents($targetFile, $content);
+            @chmod($targetFile, 0666);
             return $fileName;
         }
 

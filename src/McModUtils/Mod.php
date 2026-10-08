@@ -498,9 +498,11 @@ class Mod {
 
         if ($iconData !== false) {
             if (!is_dir($targetDir)) {
-                @mkdir($targetDir, 0755, true);
+                @mkdir($targetDir, 0775, true);
+                @chmod($targetDir, 0775);
             }
             file_put_contents($iconFilePath, $iconData);
+            @chmod($iconFilePath, 0666);
             return $iconFileName;
         }
 

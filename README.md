@@ -149,34 +149,44 @@ sudo systemctl restart php8.4-fpm.service
 
 ### 指令用法
 
+> **⚠️ 權限提醒（正式部署環境）**：
+> 正式伺服器上 Nginx 與 PHP-FPM 通常由 `www-data` 使用者執行。為避免產生檔案的擁有者錯亂導致 Web 模式無權讀寫，**強烈建議使用 `sudo -u www-data` 執行腳本**。
+
 ```bash
 # 1. 常規增量更新（跳過有效快取，預設 TTL 14 天）
-php scripts/sync_mods_metadata.php
+sudo -u www-data php scripts/sync_mods_metadata.php
 
 # 2. 強制全量重新查詢與下載圖標（忽略既有快取）
-php scripts/sync_mods_metadata.php --force
+sudo -u www-data php scripts/sync_mods_metadata.php --force
 
 # 3. 指定快取過期天數（例如刷新快取超過 7 天的模組）
-php scripts/sync_mods_metadata.php --ttl=7
+sudo -u www-data php scripts/sync_mods_metadata.php --ttl=7
 
 # 4. 指定特定模組分類
-php scripts/sync_mods_metadata.php --type=common,client
+sudo -u www-data php scripts/sync_mods_metadata.php --type=common,client
 
 # 5. 靜音模式（僅在發生錯誤時輸出，適合 Crontab 排程）
-php scripts/sync_mods_metadata.php --quiet
+sudo -u www-data php scripts/sync_mods_metadata.php --quiet
 ```
 
 ### Crontab 自動排程範例
 
-建議在伺服器設置 Crontab 定期排程（例如每週日清晨 04:00 自動執行一次增量更新）：
+建議在伺服器設置 Crontab 定期排程（例如每週日清晨 04:00 自動執行一次增量更新），請直接掛入 `www-data` 帳號的專屬排程：
 
 ```bash
-# 開啟 crontab 編輯
-crontab -e
+# 開啟 www-data 的專屬 crontab 編輯
+sudo crontab -u www-data -e
 
 # 加入以下排程（刷新超過 14 天的資料）
 0 4 * * 0 /usr/bin/php /opt/minecraft/php-minecraft-server-info/scripts/sync_mods_metadata.php --ttl=14 --quiet >> /opt/minecraft/php-minecraft-server-info/cron_sync.log 2>&1
 ```
+
+> **💡 若已手動執行過且權限錯亂的修復方式**：
+> 若先前曾以一般使用者或 root 執行過，可執行以下指令將快取與圖標目錄重新指派回 `www-data`：
+> ```bash
+> sudo chown -R www-data:www-data public/static/
+> sudo chmod -R 775 public/static/
+> ```
 
 ## 效能測試
 
