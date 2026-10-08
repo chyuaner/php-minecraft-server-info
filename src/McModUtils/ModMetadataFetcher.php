@@ -48,6 +48,7 @@ class ModMetadataFetcher
             return;
         }
 
+        $isCli = (php_sapi_name() === 'cli');
         $cache = self::loadCache();
         $now = time();
         $sha1ToModMap = [];
@@ -63,16 +64,16 @@ class ModMetadataFetcher
             $sha1 = $mod->getSha1();
             $sha1ToModMap[$sha1] = $mod;
 
-            // 確保本地 JAR 內嵌圖標有解壓出來作為保底縮圖
-            $localThumb = $mod->extractLocalIcon($iconsDir);
-
             $isCached = isset($cache[$sha1]);
             $isExpired = $isCached && (empty($cache[$sha1]['cached_at']) || ($now - (int)$cache[$sha1]['cached_at']) > $ttl);
 
-            // 若已有快取但圖標檔案在本地遺失，則需要重新補充圖標
+            // 若在 CLI 模式下，發現圖標檔案在本地遺失，則納入重新下載
             $needsIconDownload = false;
-            if ($isCached && !empty($cache[$sha1]['logo']['modrinth_url']) && empty($cache[$sha1]['logo']['local_icon'])) {
-                $needsIconDownload = true;
+            if ($isCli && $isCached && !empty($cache[$sha1]['logo']['modrinth_url'])) {
+                $iconFile = $cache[$sha1]['logo']['local_icon'] ?? null;
+                if (empty($iconFile) || !file_exists($iconsDir . '/' . $iconFile)) {
+                    $needsIconDownload = true;
+                }
             }
 
             if ($force || !$isCached || $isExpired || $needsIconDownload) {
@@ -89,6 +90,39 @@ class ModMetadataFetcher
         }
 
         $missingSha1s = array_values(array_unique($missingSha1s));
+
+        // 防 504 逾時保護：若在網頁請求 (Web) 模式下，且有過多缺漏模組 (例如冷快取 > 50 款)，
+        // 則不在此同步請求中執行耗時的外部批次查詢，直接降級使用本地 JAR 基本資訊，避免阻斷網頁請求。
+        if (!$isCli && count($missingSha1s) > 50) {
+            foreach ($missingSha1s as $sha1) {
+                $mod = $sha1ToModMap[$sha1] ?? null;
+                if ($mod) {
+                    $mod->setExtra([
+                        'cached_at' => $now,
+                        'source' => 'server',
+                        'is_custom' => true,
+                        'summary' => $mod->getDescription(),
+                        'description' => $mod->getDescription(),
+                        'download_url' => null,
+                        'logo' => [
+                            'local_icon' => null,
+                            'local_thumb' => null,
+                            'modrinth_url' => null,
+                            'curseforge_url' => null,
+                        ],
+                        'links' => [
+                            'website_url' => $mod->getDisplayURL(),
+                            'modrinth_url' => null,
+                            'curseforge_url' => null,
+                            'source_url' => null,
+                            'issues_url' => null,
+                            'wiki_url' => null,
+                        ]
+                    ]);
+                }
+            }
+            return;
+        }
 
         // 1. 透過 Modrinth 批次查詢（每批次最多 100 筆）
         $modrinthBatches = array_chunk($missingSha1s, 100);
@@ -191,10 +225,20 @@ class ModMetadataFetcher
                 }
             }
 
-            // 下載遠端圖標至本地伺服器
+            // 下載遠端圖標至本地伺服器（僅在 CLI 模式下載，避免 Web 請求逐一下載圖檔阻塞卡死）
             $localIconFile = null;
-            if (!empty($remoteIconUrl)) {
+            if ($isCli && !empty($remoteIconUrl)) {
                 $localIconFile = self::downloadAndSaveIcon($remoteIconUrl, $sha1);
+            } elseif (!empty($remoteIconUrl)) {
+                // 非 CLI 模式：若本地已存在檔案則直接使用，否則不進行阻塞式下載
+                $path = parse_url($remoteIconUrl, PHP_URL_PATH);
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION)) ?: 'webp';
+                if (!in_array($ext, ['webp', 'png', 'jpg', 'jpeg', 'svg', 'gif'])) {
+                    $ext = 'webp';
+                }
+                if (file_exists($iconsDir . '/' . $sha1 . '.' . $ext)) {
+                    $localIconFile = $sha1 . '.' . $ext;
+                }
             }
 
             // 取得本地解壓的縮圖檔案名稱
